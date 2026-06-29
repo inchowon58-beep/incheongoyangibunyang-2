@@ -1,0 +1,20 @@
+{
+  "site_url": "https://incheongoyangibunyang-2.vercel.app",
+  "site_name": "인천고양이분양",
+  "pages": [
+    {
+      "url": "https://incheongoyangibunyang-2.vercel.app",
+      "title": "인천고양이분양, 건강하고 사랑스러운 아기고양이와 함께하세요",
+      "description": "인천고양이분양은 건강 검진 마친 아기고양이를 가족의 품으로 안내합니다. 다양한 품종, 투명한 분양 과정, 철저한 사후 관리로 행복한 반려생활을 시작하세요.",
+      "keyword": "인천고양이분양",
+      "lastmod": "2026-06-29",
+      "images": [
+        "https://image.cattery.co.kr/maincoon/12.webp",
+        "https://image.cattery.co.kr/maincoon/30.webp",
+        "https://image.cattery.co.kr/maincoon/22.webp",
+        "https://image.cattery.co.kr/maincoon/46.webp",
+        "https://image.cattery.co.kr/maincoon/08.webp"
+      ]
+    }
+  ]
+}
