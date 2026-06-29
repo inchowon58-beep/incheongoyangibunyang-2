@@ -6,13 +6,13 @@ import {
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://inchon.cattery.co.kr"),
+  metadataBase: new URL("https://ansan.cattery.co.kr"),
   title: "인천고양이분양, 건강하고 사랑스러운 아기고양이와 함께하세요",
   description: "인천고양이분양은 건강 검진 마친 아기고양이를 가족의 품으로 안내합니다. 다양한 품종, 투명한 분양 과정, 철저한 사후 관리로 행복한 반려생활을 시작하세요.",
-  keywords: ["https://inchon.cattery.co.kr/"],
-  authors: [{ name: "https://inchon.cattery.co.kr/" }],
-  creator: "https://inchon.cattery.co.kr/",
-  publisher: "https://inchon.cattery.co.kr/",
+  keywords: ["https://ansan.cattery.co.kr/"],
+  authors: [{ name: "https://ansan.cattery.co.kr/" }],
+  creator: "https://ansan.cattery.co.kr/",
+  publisher: "https://ansan.cattery.co.kr/",
   robots: {
     index: true,
     follow: true,
@@ -20,8 +20,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "ko_KR",
-    url: "https://inchon.cattery.co.kr",
-    siteName: "https://inchon.cattery.co.kr/",
+    url: "https://ansan.cattery.co.kr",
+    siteName: "https://ansan.cattery.co.kr/",
     title: "인천고양이분양, 건강하고 사랑스러운 아기고양이와 함께하세요",
     description: "인천고양이분양은 건강 검진 마친 아기고양이를 가족의 품으로 안내합니다. 다양한 품종, 투명한 분양 과정, 철저한 사후 관리로 행복한 반려생활을 시작하세요.",
     images: [{ url: "/images/landing-01.jpg" }],
@@ -33,15 +33,15 @@ export const metadata: Metadata = {
     images: ["/images/landing-01.jpg"],
   },
   alternates: {
-    canonical: "https://inchon.cattery.co.kr",
+    canonical: "https://ansan.cattery.co.kr",
     types: {
-      "application/rss+xml": "https://inchon.cattery.co.kr/feed.xml",
+      "application/rss+xml": "https://ansan.cattery.co.kr/feed.xml",
     },
   },
-  category: "https://inchon.cattery.co.kr/",
+  category: "https://ansan.cattery.co.kr/",
   verification: {
     other: {
-      "naver-site-verification": "203d7bba44f260388ecba4b97b4e652b691f1808",
+      "naver-site-verification": "7c59b3f87b22e5a089b891da64edf7f69e616856",
     },
   },
 };
@@ -56,7 +56,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
-        <meta name="naver-site-verification" content="203d7bba44f260388ecba4b97b4e652b691f1808" />
+        <meta name="naver-site-verification" content="7c59b3f87b22e5a089b891da64edf7f69e616856" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
