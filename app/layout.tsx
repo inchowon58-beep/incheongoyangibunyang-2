@@ -6,13 +6,13 @@ import {
 import "./globals.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://incheongoyangibunyang-2.vercel.app"),
+  metadataBase: new URL("https://inchon.cattery.co.kr"),
   title: "인천고양이분양, 건강하고 사랑스러운 아기고양이와 함께하세요",
   description: "인천고양이분양은 건강 검진 마친 아기고양이를 가족의 품으로 안내합니다. 다양한 품종, 투명한 분양 과정, 철저한 사후 관리로 행복한 반려생활을 시작하세요.",
-  keywords: ["인천고양이분양", "인천 고양이 분양", "인천 아기고양이", "건강한 고양이 분양", "고양이 분양 전문 인천"],
-  authors: [{ name: "인천고양이분양" }],
-  creator: "인천고양이분양",
-  publisher: "인천고양이분양",
+  keywords: ["https://inchon.cattery.co.kr/"],
+  authors: [{ name: "https://inchon.cattery.co.kr/" }],
+  creator: "https://inchon.cattery.co.kr/",
+  publisher: "https://inchon.cattery.co.kr/",
   robots: {
     index: true,
     follow: true,
@@ -20,28 +20,28 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "ko_KR",
-    url: "https://incheongoyangibunyang-2.vercel.app",
-    siteName: "인천고양이분양",
+    url: "https://inchon.cattery.co.kr",
+    siteName: "https://inchon.cattery.co.kr/",
     title: "인천고양이분양, 건강하고 사랑스러운 아기고양이와 함께하세요",
     description: "인천고양이분양은 건강 검진 마친 아기고양이를 가족의 품으로 안내합니다. 다양한 품종, 투명한 분양 과정, 철저한 사후 관리로 행복한 반려생활을 시작하세요.",
-    images: [{ url: "/https://image.cattery.co.kr/maincoon/12.webp" }],
+    images: [{ url: "/images/landing-01.jpg" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "인천고양이분양, 건강하고 사랑스러운 아기고양이와 함께하세요",
     description: "인천고양이분양은 건강 검진 마친 아기고양이를 가족의 품으로 안내합니다. 다양한 품종, 투명한 분양 과정, 철저한 사후 관리로 행복한 반려생활을 시작하세요.",
-    images: ["/https://image.cattery.co.kr/maincoon/12.webp"],
+    images: ["/images/landing-01.jpg"],
   },
   alternates: {
-    canonical: "https://incheongoyangibunyang-2.vercel.app",
+    canonical: "https://inchon.cattery.co.kr",
     types: {
-      "application/rss+xml": "https://incheongoyangibunyang-2.vercel.app/feed.xml",
+      "application/rss+xml": "https://inchon.cattery.co.kr/feed.xml",
     },
   },
-  category: "인천고양이분양",
+  category: "https://inchon.cattery.co.kr/",
   verification: {
     other: {
-      "naver-site-verification": "PENDING",
+      "naver-site-verification": "091fae8fdeaa82ef35cb80e5e7fe98ef87346630",
     },
   },
 };
@@ -56,7 +56,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
-        <meta name="naver-site-verification" content="PENDING" />
+        <meta name="naver-site-verification" content="091fae8fdeaa82ef35cb80e5e7fe98ef87346630" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
