@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   category: "https://inchon.cattery.co.kr/",
   verification: {
     other: {
-      "naver-site-verification": "091fae8fdeaa82ef35cb80e5e7fe98ef87346630",
+      "naver-site-verification": "203d7bba44f260388ecba4b97b4e652b691f1808",
     },
   },
 };
@@ -56,7 +56,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <head>
-        <meta name="naver-site-verification" content="091fae8fdeaa82ef35cb80e5e7fe98ef87346630" />
+        <meta name="naver-site-verification" content="203d7bba44f260388ecba4b97b4e652b691f1808" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
