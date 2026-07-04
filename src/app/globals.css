@@ -27,6 +27,7 @@ body {
 
 html {
   scroll-behavior: smooth;
+  background: var(--cream);
 }
 
 .prose-seo h2 {
@@ -161,7 +162,7 @@ html {
 }
 
 .safe-area-pb {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
 }
 
 @keyframes count-up {

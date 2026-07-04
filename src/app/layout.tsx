@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import Header from "@/components/Header";
 import FooterWrapper from "@/components/FooterWrapper";
@@ -12,6 +12,10 @@ export async function generateMetadata(): Promise<Metadata> {
   const config = await getSiteConfig();
   return buildSiteMetadata(config);
 }
+
+export const viewport: Viewport = {
+  themeColor: "#fafafa",
+};
 
 export default async function RootLayout({
   children,
