@@ -45,8 +45,9 @@ export default function AdminClient() {
   const [copiedPageId, setCopiedPageId] = useState<string | null>(null);
   const [rankings, setRankings] = useState<Map<string, RankingSummary>>(new Map());
   const [rankingsUpdated, setRankingsUpdated] = useState<string | null>(null);
-  const [hasNaverApi, setHasNaverApi] = useState(true);
+  const [hasNaverApi, setHasNaverApi] = useState(false);
   const [rankModal, setRankModal] = useState<{ pageId: string; keyword: string } | null>(null);
+  const [checkingRanks, setCheckingRanks] = useState(false);
 
   function formatRank(rank: number | null): string {
     if (rank === null) return "-";
@@ -85,7 +86,9 @@ export default function AdminClient() {
         const data = await rankingsRes.json();
         setRankings(new Map(data.summaries.map((s: RankingSummary) => [s.pageId, s])));
         setRankingsUpdated(data.lastUpdated || null);
-        setHasNaverApi(data.hasNaverApi !== false);
+        setHasNaverApi(!!data.hasNaverApi);
+      } else if (rankingsRes.status === 404) {
+        setMessage("배포가 아직 반영되지 않았습니다. Vercel 재배포 후 새로고침하세요.");
       }
     } catch {
       setMessage("데이터 로드 실패");
@@ -149,6 +152,28 @@ export default function AdminClient() {
     }
   };
 
+  const handleCheckRankings = async () => {
+    if (!hasNaverApi) {
+      setMessage("Naver 검색 API를 마스터 설정 또는 Vercel 환경변수에 등록해 주세요.");
+      return;
+    }
+    setCheckingRanks(true);
+    setMessage("네이버 웹문서 순위 확인 중... (페이지 수에 따라 1~2분 소요)");
+    try {
+      const res = await fetch("/api/admin/seo-rankings/check", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setMessage(`순위 확인 완료: ${data.checked}개 페이지 (${data.errors?.length ? `오류 ${data.errors.length}건` : "성공"})`);
+        await loadData();
+      } else {
+        setMessage(data.error || "순위 확인에 실패했습니다.");
+      }
+    } catch {
+      setMessage("순위 확인 중 오류가 발생했습니다.");
+    }
+    setCheckingRanks(false);
+  };
+
   const serviceActive = !quota?.service || quota.service.active;
   const canGenerate = serviceActive && (!quota || quota.remaining > 0);
 
@@ -168,32 +193,44 @@ export default function AdminClient() {
           </div>
         </div>
 
-        {quota && (
-          <div
-            className={`mb-6 rounded-xl px-4 py-3 border text-sm ${
-              serviceActive && quota.remaining > 0
-                ? "bg-white border-gray-200 text-dark"
-                : "bg-red-50 border-red-200 text-red-900"
-            }`}
-          >
-            <p className="font-medium">
-              사용가능일{" "}
-              <span className="text-orange">{quota.service?.daysRemaining ?? 0}일</span>
-              {quota.service?.expiresAt && (
-                <span className="text-gray-500 font-normal">
-                  {" "}
-                  (만료 {quota.service.expiresAt})
-                </span>
-              )}
-              <span className="text-gray-300 mx-2">|</span>
-              오늘 생성 가능{" "}
-              <span className="text-orange">{quota.remaining}개</span>
-              <span className="text-gray-500 font-normal">
-                {" "}
-                / {quota.limit}개
-              </span>
-            </p>
+        {loading && !quota ? (
+          <div className="mb-6 rounded-xl px-4 py-3 border border-gray-200 bg-white text-sm text-gray-400">
+            사용가능일 · 생성 가능 수량 불러오는 중...
           </div>
+        ) : (
+          quota && (
+            <div
+              className={`mb-6 rounded-xl px-4 py-3 border text-sm ${
+                serviceActive && quota.remaining > 0
+                  ? "bg-white border-gray-200 text-dark"
+                  : "bg-red-50 border-red-200 text-red-900"
+              }`}
+            >
+              <p className="font-medium">
+                사용가능일{" "}
+                <span className="text-orange">{quota.service?.daysRemaining ?? 0}일</span>
+                {quota.service?.expiresAt && (
+                  <span className="text-gray-500 font-normal">
+                    {" "}
+                    (만료 {quota.service.expiresAt})
+                  </span>
+                )}
+                <span className="text-gray-300 mx-2">|</span>
+                오늘 생성 가능{" "}
+                <span className="text-orange">{quota.remaining}개</span>
+                <span className="text-gray-500 font-normal"> / {quota.limit}개</span>
+                <span className="text-gray-300 mx-2">|</span>
+                <button
+                  type="button"
+                  onClick={handleCheckRankings}
+                  disabled={checkingRanks || !hasNaverApi}
+                  className="text-orange hover:underline disabled:opacity-50 disabled:no-underline"
+                >
+                  {checkingRanks ? "순위 확인 중..." : "순위 지금 확인"}
+                </button>
+              </p>
+            </div>
+          )
         )}
 
         {message && (
@@ -246,7 +283,8 @@ export default function AdminClient() {
           </div>
           {!hasNaverApi && (
             <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4">
-              Naver 검색 API가 설정되지 않아 순위 확인이 불가합니다. 마스터 설정에서 Client ID/Secret을 등록하세요.
+              Naver 검색 API(Client ID/Secret)가 없어 순위 확인이 불가합니다. 마스터 설정 또는 Vercel
+              환경변수(NAVER_CLIENT_ID, NAVER_CLIENT_SECRET)를 등록하세요.
             </p>
           )}
           {loading ? (
@@ -267,34 +305,34 @@ export default function AdminClient() {
                     <p className="text-xs text-gray-400 mt-1 break-all">
                       {page.keyword} · {guidePageUrl(page.slug)}
                     </p>
-                    {hasNaverApi && (
-                      <p className="text-xs mt-2">
-                        <span className="text-gray-500">네이버 순위 </span>
-                        <span className="font-semibold text-orange">
-                          {formatRank(rankInfo?.rank ?? null)}
+                    <p className="text-xs mt-2">
+                      <span className="text-gray-500">네이버 순위 </span>
+                      <span className="font-semibold text-orange">
+                        {hasNaverApi ? formatRank(rankInfo?.rank ?? null) : "API 미설정"}
+                      </span>
+                      {hasNaverApi && rankInfo?.change != null && rankInfo.change !== 0 && (
+                        <span
+                          className={
+                            rankInfo.change > 0 ? "text-emerald-600" : "text-red-500"
+                          }
+                        >
+                          {formatRankChange(rankInfo.change)}
                         </span>
-                        {rankInfo?.change != null && rankInfo.change !== 0 && (
-                          <span
-                            className={
-                              rankInfo.change > 0 ? "text-emerald-600" : "text-red-500"
-                            }
-                          >
-                            {formatRankChange(rankInfo.change)}
-                          </span>
-                        )}
-                      </p>
-                    )}
+                      )}
+                      {hasNaverApi && rankInfo?.rank === null && rankInfo?.checkedAt === null && (
+                        <span className="text-gray-400"> · 상단 「순위 지금 확인」 클릭</span>
+                      )}
+                    </p>
                   </div>
                   <div className="flex flex-wrap gap-2 shrink-0">
-                    {hasNaverApi && (
-                      <button
-                        type="button"
-                        onClick={() => setRankModal({ pageId: page.id, keyword: page.keyword })}
-                        className="text-xs px-3 py-1.5 border border-orange/40 text-orange rounded-lg hover:bg-orange/5"
-                      >
-                        순위변동 확인
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => setRankModal({ pageId: page.id, keyword: page.keyword })}
+                      className="text-xs px-3 py-1.5 border border-orange/40 text-orange rounded-lg hover:bg-orange/5 disabled:opacity-40"
+                      disabled={!hasNaverApi}
+                    >
+                      순위변동 확인
+                    </button>
                     <Link
                       href={guidePageUrl(page.slug)}
                       target="_blank"
