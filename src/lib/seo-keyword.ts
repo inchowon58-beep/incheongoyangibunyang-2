@@ -21,27 +21,16 @@ export function dedupeRegionInCompact(text: string, region: string): string {
   return result;
 }
 
-function insertSpacesForKeyword(compact: string, region: string): string {
-  if (!compact.startsWith(region)) return compact;
-
-  const rest = compact.slice(region.length);
-  const breakWords = ["견적", "지원금", "원상복구", "폐업", "상가", "비용", "무료", "방문"];
-  let tail = rest;
-  const parts: string[] = [region];
-
-  for (const word of breakWords) {
-    const idx = tail.indexOf(word);
-    if (idx > 0) {
-      parts.push(tail.slice(0, idx), word);
-      tail = tail.slice(idx + word.length);
-    } else if (idx === 0) {
-      parts.push(word);
-      tail = tail.slice(word.length);
-    }
+function formatKeywordAfterRegion(compact: string, region: string): string {
+  if (!compact.startsWith(region)) {
+    return compact.replace(/\s+/g, " ").trim();
   }
 
-  if (tail) parts.push(tail);
-  return parts.filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+  const rest = compact.slice(region.length);
+  if (!rest) return region;
+
+  // 지역 + 서비스 키워드 사이에만 띄어쓰기 (은평구 철거지원금)
+  return `${region} ${rest}`;
 }
 
 /** "자양동 자양동철거" → "자양동철거" 등 지역 중복 제거 */
@@ -58,7 +47,7 @@ export function dedupeRegionInText(text: string, region: string | null): string 
   const compact = result.replace(/\s/g, "");
   const dedupedCompact = dedupeRegionInCompact(compact, region);
   if (dedupedCompact !== compact) {
-    result = insertSpacesForKeyword(dedupedCompact, region);
+    result = formatKeywordAfterRegion(dedupedCompact, region);
   }
 
   return result.replace(/\s+/g, " ").trim();
@@ -74,7 +63,7 @@ export function normalizeSeoKeyword(keyword: string): string {
   if (!region) return spaced;
 
   const fixedCompact = dedupeRegionInCompact(compact, region);
-  return insertSpacesForKeyword(fixedCompact, region);
+  return formatKeywordAfterRegion(fixedCompact, region);
 }
 
 export function extractRegionForKeyword(keyword: string): string | null {

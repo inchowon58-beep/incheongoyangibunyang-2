@@ -101,6 +101,7 @@ export function resolveSeoPage(page: SeoPage, config: SiteConfig): ResolvedSeoPa
 
   return {
     ...page,
+    keyword,
     title: buildSeoPageTitle(applySiteTokens(page.title, config), keyword, config.brandName),
     description: polishSeoText(applySiteTokens(page.description, config), region),
     content: enrichSeoContentWithImages(polishedContent, keyword, config, seed),
