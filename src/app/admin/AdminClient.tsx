@@ -295,13 +295,39 @@ export default function AdminClient() {
                 disabled={!canGenerate}
               />
             </div>
-            <button
-              type="submit"
-              disabled={generating || !canGenerate}
-              className="px-8 py-3 bg-orange text-white font-bold rounded-xl hover:bg-orange-light transition disabled:opacity-50"
-            >
-              {generating ? "AI 생성 중..." : "SEO 페이지 생성"}
-            </button>
+            <div className="flex flex-col lg:flex-row lg:items-stretch gap-4">
+              <button
+                type="submit"
+                disabled={generating || !canGenerate}
+                className="px-8 py-3 bg-orange text-white font-bold rounded-xl hover:bg-orange-light transition disabled:opacity-50 shrink-0 lg:self-start"
+              >
+                {generating ? "AI 생성 중..." : "SEO 페이지 생성"}
+              </button>
+              <div className="flex-1 rounded-xl border border-[#03C75A]/25 bg-gradient-to-br from-[#e8f9ef] via-white to-[#f7fffa] px-4 py-3.5 shadow-sm">
+                <p className="text-sm font-bold text-[#03C75A] mb-2 flex items-center gap-1.5">
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#03C75A] text-[10px] text-white font-black">
+                    N
+                  </span>
+                  네이버 순위반영 자동화
+                </p>
+                <ul className="text-xs text-gray-700 space-y-1.5 leading-relaxed">
+                  <li className="flex gap-2">
+                    <span className="text-[#03C75A] font-bold shrink-0">✓</span>
+                    <span>
+                      <strong className="text-gray-900">생성 즉시</strong> 네이버 순위반영 작업이
+                      진행됩니다.
+                    </span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="text-[#03C75A] font-bold shrink-0">✓</span>
+                    <span>
+                      총 <strong className="text-gray-900">300대의 서버</strong>를 통해 순위반영을
+                      위한 작업이 <strong className="text-gray-900">자동으로</strong> 진행됩니다.
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
             {!canGenerate && quota.service && !quota.service.active && (
               <p className="text-xs text-red-500">
                 사용 기간이 만료되었습니다. 마스터 설정에서 기간 연장 후 이용하세요.
