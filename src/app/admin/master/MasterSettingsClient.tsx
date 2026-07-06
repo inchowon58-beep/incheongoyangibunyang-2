@@ -264,7 +264,7 @@ export default function MasterSettingsClient() {
                 </span>
               )}
               <span className="text-gray-300 mx-2">|</span>
-              일일 생성 한도{" "}
+              일일 최적화 한도{" "}
               <span className="text-orange">{quotaPreview.remaining}개</span>
               <span className="text-gray-500 font-normal"> / {quotaPreview.limit}개</span>
               <span className="text-gray-400 font-normal text-xs ml-2">
@@ -305,9 +305,9 @@ export default function MasterSettingsClient() {
           </div>
 
           <div className="bg-white rounded-2xl shadow-sm p-6 border-2 border-orange/20">
-            <h2 className="font-bold text-dark mb-2">SEO 일일 생성 한도</h2>
+            <h2 className="font-bold text-dark mb-2">SEO 일일 최적화 한도</h2>
             <p className="text-xs text-gray-400 mb-4">
-              관리자 페이지에서 하루에 생성할 수 있는 SEO 페이지 수 (자정 KST 초기화)
+              당사 인프라에서 하루에 최적화할 수 있는 SEO 페이지 수입니다. (자정 KST 기준 초기화)
             </p>
             {siteField("하루 생성 가능 수량", "dailySeoLimit", {
               type: "number",

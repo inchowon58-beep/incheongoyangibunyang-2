@@ -598,7 +598,7 @@ export default function AdminClient() {
 
           {generationSummary && generationSummary.total > 0 && (
             <div className="mb-4 rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm">
-              <p className="font-medium text-dark mb-1">VM 자동 생성 대기열</p>
+              <p className="font-medium text-dark mb-1">콘텐츠 자동 최적화 대기열</p>
               <p className="text-gray-600 text-xs">
                 대기 <strong className="text-orange">{generationSummary.pending}</strong>
                 {" · "}
@@ -641,23 +641,24 @@ export default function AdminClient() {
               <div className="flex-1 rounded-xl border border-[#03C75A]/25 bg-gradient-to-br from-[#e8f9ef] via-white to-[#f7fffa] px-4 py-3.5 shadow-sm">
                 <p className="text-sm font-bold text-[#03C75A] mb-2 flex items-center gap-1.5">
                   <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#03C75A] text-[10px] text-white font-black">
-                    N
+                    P
                   </span>
-                  네이버 순위반영 자동화
+                  포털 인덱싱 및 노출 최적화
                 </p>
                 <ul className="text-xs text-gray-700 space-y-1.5 leading-relaxed">
                   <li className="flex gap-2">
                     <span className="text-[#03C75A] font-bold shrink-0">✓</span>
                     <span>
-                      <strong className="text-gray-900">생성 즉시</strong> 네이버 순위반영 작업이
-                      진행됩니다.
+                      <strong className="text-gray-900">페이지 생성 즉시</strong> 주요 포털 사이트
+                      수집 및 노출 최적화 작업이 진행됩니다.
                     </span>
                   </li>
                   <li className="flex gap-2">
                     <span className="text-[#03C75A] font-bold shrink-0">✓</span>
                     <span>
-                      총 <strong className="text-gray-900">300대의 서버</strong>를 통해 순위반영을
-                      위한 작업이 <strong className="text-gray-900">자동으로</strong> 진행됩니다.
+                      <strong className="text-gray-900">분산형 최적화 인프라 시스템</strong>을 통해
+                      사이트 신뢰도 분석 및 빌드가{" "}
+                      <strong className="text-gray-900">자동으로</strong> 진행됩니다.
                     </span>
                   </li>
                 </ul>
@@ -734,7 +735,7 @@ export default function AdminClient() {
         <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div>
-              <h2 className="font-bold text-dark">VM 생성 대기열 · 키워드 확인</h2>
+              <h2 className="font-bold text-dark">최적화 대기열 · 타겟 키워드 확인</h2>
               <p className="text-xs text-gray-500 mt-1">
                 대기 중 키워드를 TXT처럼 편집·저장할 수 있습니다. (최대 {MAX_BULK_KEYWORDS}개)
               </p>
