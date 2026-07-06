@@ -697,10 +697,10 @@ export default function AdminClient() {
                 disabled={bulkEnqueueing || !serviceActive}
                 className="px-8 py-3 bg-dark text-white font-bold rounded-xl hover:bg-dark-light transition disabled:opacity-50"
               >
-                {bulkEnqueueing ? "등록 중..." : "대량 등록 (VM 자동 생성)"}
+                {bulkEnqueueing ? "등록 중..." : "대량 등록 (순차발행)"}
               </button>
               <p className="text-xs text-gray-500">
-                즉시 생성하지 않고 VM 대기열에 등록됩니다. VM이 5~10분(설정) 간격으로 1개씩 생성합니다.
+                즉시 생성하지 않고 대기열에 등록됩니다. 5~10분 간격으로 1개씩 생성합니다.
               </p>
             </form>
           )}
