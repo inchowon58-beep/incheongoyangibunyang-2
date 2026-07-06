@@ -68,6 +68,8 @@ export default function MasterSettingsClient() {
   const [collectionSiteUrl, setCollectionSiteUrl] = useState("");
   const [collectionWorkerSecret, setCollectionWorkerSecret] = useState("");
   const [hasCollectionWorkerSecret, setHasCollectionWorkerSecret] = useState(false);
+  const [slackWebhookUrl, setSlackWebhookUrl] = useState("");
+  const [hasSlackWebhook, setHasSlackWebhook] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -96,6 +98,7 @@ export default function MasterSettingsClient() {
     setHasNaverApi(settings.hasNaverApi);
     setCollectionSiteUrl(settings.collectionSiteUrl || settings.url || "");
     setHasCollectionWorkerSecret(!!settings.hasCollectionWorkerSecret);
+    setHasSlackWebhook(!!settings.hasSlackWebhook);
   }
 
   async function loadSettings() {
@@ -110,6 +113,7 @@ export default function MasterSettingsClient() {
     setHasNaverApi(settings.hasNaverApi);
     setCollectionSiteUrl(settings.collectionSiteUrl || settings.url || "");
     setHasCollectionWorkerSecret(!!settings.hasCollectionWorkerSecret);
+    setHasSlackWebhook(!!settings.hasSlackWebhook);
     setServiceExpiresAt(settings.serviceExpiresAt || "");
     setSiteForm({
       brandName: settings.brandName || "",
@@ -155,6 +159,7 @@ export default function MasterSettingsClient() {
           naverExposurePassword: naverExposurePassword || undefined,
           collectionSiteUrl: collectionSiteUrl || undefined,
           collectionWorkerSecret: collectionWorkerSecret || undefined,
+          slackWebhookUrl: slackWebhookUrl || undefined,
         }),
       });
       if (res.ok) {
@@ -186,6 +191,7 @@ export default function MasterSettingsClient() {
         setNaverClientId("");
         setNaverClientSecret("");
         setCollectionWorkerSecret("");
+        setSlackWebhookUrl("");
         await loadSecretFlags();
         await loadQuotaPreview();
       } else {
@@ -415,6 +421,42 @@ export default function MasterSettingsClient() {
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-orange"
                 />
               </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-sm p-6 border-2 border-violet-200">
+            <h2 className="font-bold text-dark mb-2">Slack 견적 문의 알림</h2>
+            <p className="text-xs text-gray-500 mb-4">
+              상세페이지에서 견적 신청이 접수되면 Slack 채널로 즉시 알림을 보냅니다.{" "}
+              <a
+                href="https://api.slack.com/messaging/webhooks"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-orange underline"
+              >
+                Slack Incoming Webhook
+              </a>
+              URL을 입력하세요. (Vercel 환경변수 <code className="text-orange">SLACK_INQUIRY_WEBHOOK_URL</code>{" "}
+              로도 설정 가능)
+            </p>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Slack Webhook URL
+              </label>
+              <input
+                type="password"
+                placeholder={
+                  hasSlackWebhook ? "설정됨 (변경 시 입력)" : "https://hooks.slack.com/services/..."
+                }
+                value={slackWebhookUrl}
+                onChange={(e) => setSlackWebhookUrl(e.target.value)}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-orange"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                {hasSlackWebhook
+                  ? "✓ 알림 연동됨 — 견적 신청 시 Slack으로 이름·연락처·키워드 등이 전송됩니다."
+                  : "Webhook URL 저장 후 견적 신청 테스트를 해보세요."}
+              </p>
             </div>
           </div>
 

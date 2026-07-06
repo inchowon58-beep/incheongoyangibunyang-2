@@ -62,6 +62,8 @@ export interface Settings {
   collectionSiteUrl?: string;
   /** VM 수집 프로그램 API 인증 토큰 */
   collectionWorkerSecret?: string;
+  /** Slack Incoming Webhook — 견적 문의 실시간 알림 */
+  slackWebhookUrl?: string;
 }
 
 const DATA_DIR = path.join(process.cwd(), "data");

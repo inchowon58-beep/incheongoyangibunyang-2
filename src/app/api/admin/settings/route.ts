@@ -7,6 +7,7 @@ import {
   daysRemainingFromExpiresAt,
 } from "@/lib/service-period";
 import { resolveDailySeoLimit } from "@/lib/seo-quota";
+import { resolveSlackWebhookUrl } from "@/lib/slack-notify";
 
 const SITE_FIELDS = [
   "brandName",
@@ -49,6 +50,7 @@ export async function GET() {
       hasCollectionWorkerSecret: !!(
         settings.collectionWorkerSecret || process.env.COLLECTION_WORKER_SECRET
       ),
+      hasSlackWebhook: !!resolveSlackWebhookUrl(settings),
     },
     { headers: { "Cache-Control": "no-store" } }
   );
@@ -100,6 +102,14 @@ export async function PUT(req: NextRequest) {
   }
   if (body.collectionWorkerSecret && body.collectionWorkerSecret !== "••••••••") {
     updated.collectionWorkerSecret = body.collectionWorkerSecret;
+  }
+  if (body.slackWebhookUrl !== undefined && body.slackWebhookUrl !== null) {
+    const url = String(body.slackWebhookUrl).trim();
+    if (!url) {
+      updated.slackWebhookUrl = "";
+    } else if (url !== "••••••••" && url.startsWith("https://hooks.slack.com/")) {
+      updated.slackWebhookUrl = url;
+    }
   }
 
   await saveSettings(updated);
