@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
     ? (statusParam as GenerationJobStatus | "all")
     : "all";
 
-  const [summary, recent, pendingText, jobs] = await Promise.all([
+  const [summary, recent, pendingText, queueResult] = await Promise.all([
     getGenerationQueueSummary(),
     getRecentGenerationJobs(50),
     getPendingGenerationKeywordsText(),
@@ -51,7 +51,14 @@ export async function GET(req: NextRequest) {
   ]);
 
   return NextResponse.json(
-    { summary, recent, pendingText, jobs, statusFilter: status },
+    {
+      summary,
+      recent,
+      pendingText,
+      jobs: queueResult.jobs,
+      scope: queueResult.scope,
+      statusFilter: status,
+    },
     { headers: { "Cache-Control": "no-store" } }
   );
 }
@@ -96,14 +103,19 @@ export async function POST(req: NextRequest) {
 
   const result = await enqueueGenerationKeywords(keywords);
 
+  const siteLabel = result.scope.isTenant
+    ? ` (${result.scope.subdomain})`
+    : "";
+
   return NextResponse.json({
     success: true,
     added: result.added,
     skipped: result.skipped,
     skippedReasons: result.skippedReasons,
+    scope: result.scope,
     message:
       result.added > 0
-        ? `${result.added}개 키워드를 VM 생성 대기열에 등록했습니다. VM이 순서대로 1개씩 생성합니다.`
+        ? `${result.added}개 키워드를 VM 생성 대기열${siteLabel}에 등록했습니다. VM이 순서대로 1개씩 생성합니다.`
         : "등록된 키워드가 없습니다. (중복 또는 이미 존재)",
   });
 }
@@ -145,14 +157,19 @@ export async function PUT(req: NextRequest) {
 
   const result = await replacePendingGenerationKeywords(keywords);
 
+  const siteLabel = result.scope.isTenant
+    ? ` (${result.scope.subdomain})`
+    : "";
+
   return NextResponse.json({
     success: true,
     replaced: result.replaced,
     skipped: result.skipped,
     skippedReasons: result.skippedReasons,
+    scope: result.scope,
     message:
       result.replaced > 0
-        ? `대기열을 ${result.replaced}개 키워드로 저장했습니다.`
+        ? `대기열${siteLabel}을 ${result.replaced}개 키워드로 저장했습니다.`
         : "대기열이 비워졌습니다.",
   });
 }

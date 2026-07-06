@@ -18,7 +18,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { pendingJobs, summary, quota } = await getWorkerGenerationStatus();
+  const { pendingJobs, summary, quota, scope } = await getWorkerGenerationStatus();
 
   const body = {
     count: pendingJobs.length,
@@ -27,6 +27,7 @@ export async function GET(request: Request) {
     shouldPause: quota.shouldPause,
     retryAfterSec: quota.shouldPause ? quota.retryAfterSec : undefined,
     nextEligibleAt: quota.shouldPause ? quota.nextEligibleAt : undefined,
+    tenant: scope,
     jobs: pendingJobs.map((j) => ({
       id: j.id,
       keyword: j.keyword,

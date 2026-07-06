@@ -79,6 +79,22 @@ export async function fetchTenantByHostname(
   return data as TenantSiteConfigRow;
 }
 
+export async function fetchTenantById(
+  siteConfigId: string
+): Promise<TenantSiteConfigRow | null> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase || !siteConfigId) return null;
+
+  const { data, error } = await supabase
+    .from("site_configs")
+    .select("*")
+    .eq("id", siteConfigId)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return data as TenantSiteConfigRow;
+}
+
 export async function insertTenantSiteConfig(
   row: Omit<TenantSiteConfigRow, "id" | "created_at">
 ): Promise<TenantSiteConfigRow> {

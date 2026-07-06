@@ -310,6 +310,8 @@ export interface GenerationJob {
   pageId?: string;
   slug?: string;
   error?: string;
+  /** 테넌트 대기열일 때 site_configs.id */
+  siteConfigId?: string;
 }
 
 export interface GenerationQueueData {

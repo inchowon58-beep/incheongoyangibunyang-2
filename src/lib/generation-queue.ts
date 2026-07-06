@@ -10,9 +10,22 @@ import { normalizeSeoKeyword } from "./seo-keyword";
 import { createSeoPageFromKeyword, SeoCreateError } from "./seo-page-create";
 import { verifyWorkerRequest } from "./collection-queue";
 import { getSeoQuotaWorkerInfo, type SeoQuotaWorkerInfo } from "./seo-quota";
+import { getResolvedSiteConfig } from "@/utils/siteConfig";
+import { getTenantPages } from "@/lib/supabase/tenant-pages";
+import {
+  clearTenantPendingJobs,
+  loadTenantGenerationQueue,
+  saveTenantGenerationJob,
+} from "@/lib/supabase/tenant-generation-queue";
 
 export type { GenerationJob, GenerationJobStatus, SeoQuotaWorkerInfo };
 export { verifyWorkerRequest };
+
+export interface QueueScopeInfo {
+  isTenant: boolean;
+  siteConfigId: string | null;
+  subdomain: string | null;
+}
 
 export interface GenerationWorkerResponse {
   ok: boolean;
@@ -23,16 +36,70 @@ export interface GenerationWorkerResponse {
   remaining?: number;
   collectionEnqueued?: boolean;
   quota?: SeoQuotaWorkerInfo;
-  /** VM sleep 권장 초 (quota/empty 시) */
   retryAfterSec?: number;
   nextEligibleAt?: string;
   shouldPause?: boolean;
+  tenant?: QueueScopeInfo;
+}
+
+type QueueScope =
+  | { type: "legacy" }
+  | { type: "tenant"; siteConfigId: string; subdomain: string };
+
+async function resolveQueueScope(): Promise<QueueScope> {
+  const { tenant, isTenant } = await getResolvedSiteConfig();
+  if (isTenant && tenant) {
+    return { type: "tenant", siteConfigId: tenant.id, subdomain: tenant.subdomain };
+  }
+  return { type: "legacy" };
+}
+
+export function scopeToInfo(scope: QueueScope): QueueScopeInfo {
+  if (scope.type === "tenant") {
+    return {
+      isTenant: true,
+      siteConfigId: scope.siteConfigId,
+      subdomain: scope.subdomain,
+    };
+  }
+  return { isTenant: false, siteConfigId: null, subdomain: null };
+}
+
+async function loadQueue(scope: QueueScope): Promise<GenerationQueueData> {
+  if (scope.type === "legacy") {
+    return getGenerationQueue();
+  }
+  return loadTenantGenerationQueue(scope.siteConfigId);
+}
+
+async function saveQueue(scope: QueueScope, queue: GenerationQueueData): Promise<void> {
+  if (scope.type === "legacy") {
+    await saveGenerationQueue(queue);
+    return;
+  }
+  queue.updatedAt = new Date().toISOString();
+  for (const job of queue.jobs) {
+    await saveTenantGenerationJob(scope.siteConfigId, {
+      ...job,
+      siteConfigId: scope.siteConfigId,
+    });
+  }
+}
+
+async function getExistingKeywordKeys(scope: QueueScope): Promise<Set<string>> {
+  if (scope.type === "legacy") {
+    const pages = await getPages();
+    return new Set(pages.map((p) => normalizeKeywordKey(p.keyword)));
+  }
+  const pages = await getTenantPages(scope.siteConfigId);
+  return new Set(pages.map((p) => normalizeKeywordKey(p.keyword)));
 }
 
 function buildQuotaResponse(
   message: string,
   quota: SeoQuotaWorkerInfo,
-  remaining: number
+  remaining: number,
+  scope: QueueScope
 ): GenerationWorkerResponse {
   return {
     ok: false,
@@ -43,6 +110,7 @@ function buildQuotaResponse(
     retryAfterSec: quota.retryAfterSec,
     nextEligibleAt: quota.nextEligibleAt,
     shouldPause: quota.shouldPause,
+    tenant: scopeToInfo(scope),
   };
 }
 
@@ -86,18 +154,22 @@ function hasActiveJobForKeyword(jobs: GenerationJob[], normalizedKey: string): b
   );
 }
 
-export async function getGenerationQueueSummary(): Promise<GenerationQueueSummary> {
-  const queue = await getGenerationQueue();
+function summarizeQueue(queue: GenerationQueueData): GenerationQueueSummary {
   const counts = { pending: 0, processing: 0, completed: 0, failed: 0 };
-
   for (const job of queue.jobs) {
     counts[job.status]++;
   }
+  return { ...counts, total: queue.jobs.length };
+}
 
-  return {
-    ...counts,
-    total: queue.jobs.length,
-  };
+export async function getQueueScopeInfo(): Promise<QueueScopeInfo> {
+  return scopeToInfo(await resolveQueueScope());
+}
+
+export async function getGenerationQueueSummary(): Promise<GenerationQueueSummary> {
+  const scope = await resolveQueueScope();
+  const queue = await loadQueue(scope);
+  return summarizeQueue(queue);
 }
 
 export async function enqueueGenerationKeywords(keywords: string[]): Promise<{
@@ -105,14 +177,13 @@ export async function enqueueGenerationKeywords(keywords: string[]): Promise<{
   skipped: number;
   skippedReasons: string[];
   jobs: GenerationJob[];
+  scope: QueueScopeInfo;
 }> {
-  const queue = await getGenerationQueue();
+  const scope = await resolveQueueScope();
+  const queue = await loadQueue(scope);
   await releaseStaleProcessingJobs(queue);
 
-  const pages = await getPages();
-  const existingKeys = new Set(
-    pages.map((p) => normalizeKeywordKey(p.keyword))
-  );
+  const existingKeys = await getExistingKeywordKeys(scope);
 
   const addedJobs: GenerationJob[] = [];
   const skippedReasons: string[] = [];
@@ -144,6 +215,7 @@ export async function enqueueGenerationKeywords(keywords: string[]): Promise<{
       normalizedKeyword: key,
       status: "pending",
       requestedAt: now,
+      siteConfigId: scope.type === "tenant" ? scope.siteConfigId : undefined,
     };
 
     queue.jobs.push(job);
@@ -153,42 +225,61 @@ export async function enqueueGenerationKeywords(keywords: string[]): Promise<{
 
   if (addedJobs.length > 0) {
     queue.updatedAt = now;
-    await saveGenerationQueue(queue);
+    await saveQueue(scope, queue);
   }
 
-  return { added: addedJobs.length, skipped, skippedReasons, jobs: addedJobs };
+  return {
+    added: addedJobs.length,
+    skipped,
+    skippedReasons,
+    jobs: addedJobs,
+    scope: scopeToInfo(scope),
+  };
 }
 
-export async function getPendingGenerationJobsForWorker(): Promise<GenerationJob[]> {
-  const queue = await getGenerationQueue();
+export async function getPendingGenerationJobsForWorker(): Promise<{
+  jobs: GenerationJob[];
+  scope: QueueScope;
+}> {
+  const scope = await resolveQueueScope();
+  const queue = await loadQueue(scope);
   if (await releaseStaleProcessingJobs(queue)) {
     queue.updatedAt = new Date().toISOString();
-    await saveGenerationQueue(queue);
+    await saveQueue(scope, queue);
   }
 
-  return queue.jobs
+  const jobs = queue.jobs
     .filter((j) => j.status === "pending")
     .sort((a, b) => a.requestedAt.localeCompare(b.requestedAt));
+
+  return { jobs, scope };
 }
 
 export async function getWorkerGenerationStatus(): Promise<{
   summary: GenerationQueueSummary;
   pendingJobs: GenerationJob[];
   quota: SeoQuotaWorkerInfo;
+  scope: QueueScopeInfo;
 }> {
-  const pendingJobs = await getPendingGenerationJobsForWorker();
-  const [summary, quota] = await Promise.all([
-    getGenerationQueueSummary(),
-    getSeoQuotaWorkerInfo(pendingJobs.length),
-  ]);
-  return { summary, pendingJobs, quota };
+  const { jobs: pendingJobs, scope } = await getPendingGenerationJobsForWorker();
+  const queue = await loadQueue(scope);
+  const [quota] = await Promise.all([getSeoQuotaWorkerInfo(pendingJobs.length)]);
+  return {
+    summary: summarizeQueue(queue),
+    pendingJobs,
+    quota,
+    scope: scopeToInfo(scope),
+  };
 }
 
 export async function processNextGenerationJob(): Promise<GenerationWorkerResponse> {
-  const queue = await getGenerationQueue();
+  const scope = await resolveQueueScope();
+  const scopeInfo = scopeToInfo(scope);
+  const queue = await loadQueue(scope);
+
   if (await releaseStaleProcessingJobs(queue)) {
     queue.updatedAt = new Date().toISOString();
-    await saveGenerationQueue(queue);
+    await saveQueue(scope, queue);
   }
 
   const processing = queue.jobs.find((j) => j.status === "processing");
@@ -203,6 +294,7 @@ export async function processNextGenerationJob(): Promise<GenerationWorkerRespon
       job: processing,
       remaining: pendingCount,
       quota,
+      tenant: scopeInfo,
     };
   }
 
@@ -211,11 +303,14 @@ export async function processNextGenerationJob(): Promise<GenerationWorkerRespon
     return {
       ok: true,
       status: "empty",
-      message: "대기 중인 키워드가 없습니다.",
+      message: scope.type === "tenant"
+        ? `대기 중인 키워드가 없습니다. (${scope.subdomain})`
+        : "대기 중인 키워드가 없습니다.",
       remaining: 0,
       quota,
       retryAfterSec: 600,
       shouldPause: false,
+      tenant: scopeInfo,
     };
   }
 
@@ -224,7 +319,8 @@ export async function processNextGenerationJob(): Promise<GenerationWorkerRespon
     return buildQuotaResponse(
       `오늘 SEO 페이지 생성 한도(${quota.limit}개)를 모두 사용했습니다. ${quota.nextEligibleAt} (KST 자정) 이후 VM이 다시 시도하세요.`,
       quota,
-      pendingCount
+      pendingCount,
+      scope
     );
   }
 
@@ -240,6 +336,7 @@ export async function processNextGenerationJob(): Promise<GenerationWorkerRespon
       remaining: 0,
       quota,
       retryAfterSec: 600,
+      tenant: scopeInfo,
     };
   }
 
@@ -248,16 +345,22 @@ export async function processNextGenerationJob(): Promise<GenerationWorkerRespon
   next.startedAt = now;
   next.error = undefined;
   queue.updatedAt = now;
-  await saveGenerationQueue(queue);
+  await saveQueue(scope, queue);
+
+  const createOptions =
+    scope.type === "tenant" ? { siteConfigId: scope.siteConfigId } : undefined;
 
   try {
-    const { page, collectionEnqueued } = await createSeoPageFromKeyword(next.keyword);
+    const { page, collectionEnqueued } = await createSeoPageFromKeyword(
+      next.keyword,
+      createOptions
+    );
     next.status = "completed";
     next.completedAt = new Date().toISOString();
     next.pageId = page.id;
     next.slug = page.slug;
     queue.updatedAt = next.completedAt;
-    await saveGenerationQueue(queue);
+    await saveQueue(scope, queue);
 
     const remaining = queue.jobs.filter((j) => j.status === "pending").length;
     const quotaAfter = await getSeoQuotaWorkerInfo(remaining);
@@ -278,6 +381,7 @@ export async function processNextGenerationJob(): Promise<GenerationWorkerRespon
       shouldPause: quotaAfter.shouldPause,
       retryAfterSec: quotaAfter.canGenerate ? undefined : quotaAfter.retryAfterSec,
       nextEligibleAt: quotaAfter.canGenerate ? undefined : quotaAfter.nextEligibleAt,
+      tenant: scopeInfo,
     };
   } catch (error) {
     const completedAt = new Date().toISOString();
@@ -288,7 +392,7 @@ export async function processNextGenerationJob(): Promise<GenerationWorkerRespon
         next.status = "pending";
         next.startedAt = undefined;
         queue.updatedAt = completedAt;
-        await saveGenerationQueue(queue);
+        await saveQueue(scope, queue);
         const quotaBlocked = await getSeoQuotaWorkerInfo(
           queue.jobs.filter((j) => j.status === "pending").length
         );
@@ -296,7 +400,8 @@ export async function processNextGenerationJob(): Promise<GenerationWorkerRespon
           ...buildQuotaResponse(
             error.message,
             quotaBlocked,
-            queue.jobs.filter((j) => j.status === "pending").length
+            queue.jobs.filter((j) => j.status === "pending").length,
+            scope
           ),
           job: next,
         };
@@ -306,23 +411,19 @@ export async function processNextGenerationJob(): Promise<GenerationWorkerRespon
         next.status = "failed";
         next.error = error.message;
         queue.updatedAt = completedAt;
-        await saveGenerationQueue(queue);
+        await saveQueue(scope, queue);
         return {
           ok: false,
           status: "service",
           message: error.message,
           job: next,
           remaining: queue.jobs.filter((j) => j.status === "pending").length,
+          tenant: scopeInfo,
         };
       }
 
-      if (error.code === "DUPLICATE") {
-        next.status = "failed";
-        next.error = error.message;
-      } else {
-        next.status = "failed";
-        next.error = error.message;
-      }
+      next.status = "failed";
+      next.error = error.message;
     } else {
       next.status = "failed";
       next.error =
@@ -330,7 +431,7 @@ export async function processNextGenerationJob(): Promise<GenerationWorkerRespon
     }
 
     queue.updatedAt = completedAt;
-    await saveGenerationQueue(queue);
+    await saveQueue(scope, queue);
 
     return {
       ok: false,
@@ -338,20 +439,22 @@ export async function processNextGenerationJob(): Promise<GenerationWorkerRespon
       message: next.error || "생성 실패",
       job: next,
       remaining: queue.jobs.filter((j) => j.status === "pending").length,
+      tenant: scopeInfo,
     };
   }
 }
 
 export async function getRecentGenerationJobs(limit = 30): Promise<GenerationJob[]> {
-  const queue = await getGenerationQueue();
+  const scope = await resolveQueueScope();
+  const queue = await loadQueue(scope);
   return [...queue.jobs]
     .sort((a, b) => b.requestedAt.localeCompare(a.requestedAt))
     .slice(0, limit);
 }
 
 export async function getPendingGenerationKeywords(): Promise<string[]> {
-  const pending = await getPendingGenerationJobsForWorker();
-  return pending.map((j) => j.keyword);
+  const { jobs } = await getPendingGenerationJobsForWorker();
+  return jobs.map((j) => j.keyword);
 }
 
 export async function getPendingGenerationKeywordsText(): Promise<string> {
@@ -362,27 +465,32 @@ export async function getPendingGenerationKeywordsText(): Promise<string> {
 export async function getGenerationJobsForAdmin(
   status: GenerationJobStatus | "all" = "all",
   limit = 5000
-): Promise<GenerationJob[]> {
-  const queue = await getGenerationQueue();
+): Promise<{ jobs: GenerationJob[]; scope: QueueScopeInfo }> {
+  const scope = await resolveQueueScope();
+  const queue = await loadQueue(scope);
   const sorted = [...queue.jobs].sort((a, b) => b.requestedAt.localeCompare(a.requestedAt));
   const filtered =
     status === "all" ? sorted : sorted.filter((j) => j.status === status);
-  return filtered.slice(0, limit);
+  return { jobs: filtered.slice(0, limit), scope: scopeToInfo(scope) };
 }
 
-/** 대기(pending) 작업만 새 목록으로 교체. 생성중·완료·실패는 유지 */
 export async function replacePendingGenerationKeywords(keywords: string[]): Promise<{
   replaced: number;
   skipped: number;
   skippedReasons: string[];
+  scope: QueueScopeInfo;
 }> {
-  const queue = await getGenerationQueue();
+  const scope = await resolveQueueScope();
+  const queue = await loadQueue(scope);
   await releaseStaleProcessingJobs(queue);
+
+  if (scope.type === "tenant") {
+    await clearTenantPendingJobs(scope.siteConfigId);
+  }
 
   queue.jobs = queue.jobs.filter((j) => j.status !== "pending");
 
-  const pages = await getPages();
-  const existingKeys = new Set(pages.map((p) => normalizeKeywordKey(p.keyword)));
+  const existingKeys = await getExistingKeywordKeys(scope);
 
   const skippedReasons: string[] = [];
   let skipped = 0;
@@ -422,13 +530,14 @@ export async function replacePendingGenerationKeywords(keywords: string[]): Prom
       normalizedKeyword: key,
       status: "pending",
       requestedAt: now,
+      siteConfigId: scope.type === "tenant" ? scope.siteConfigId : undefined,
     });
     replaced++;
     existingKeys.add(key);
   }
 
   queue.updatedAt = now;
-  await saveGenerationQueue(queue);
+  await saveQueue(scope, queue);
 
-  return { replaced, skipped, skippedReasons };
+  return { replaced, skipped, skippedReasons, scope: scopeToInfo(scope) };
 }

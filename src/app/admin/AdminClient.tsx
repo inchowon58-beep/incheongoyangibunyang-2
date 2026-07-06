@@ -71,6 +71,10 @@ export default function AdminClient() {
   const [queueViewStatus, setQueueViewStatus] = useState<QueueViewStatus>("pending");
   const [queueSaving, setQueueSaving] = useState(false);
   const [queueExpanded, setQueueExpanded] = useState(true);
+  const [queueScope, setQueueScope] = useState<{
+    isTenant: boolean;
+    subdomain: string | null;
+  } | null>(null);
   const [brandName, setBrandName] = useState("");
   const [quota, setQuota] = useState<SeoQuota | null>(null);
   const [loading, setLoading] = useState(false);
@@ -153,6 +157,12 @@ export default function AdminClient() {
         setRecentGenerationJobs(gen.recent || []);
         setQueuePendingText(gen.pendingText || "");
         setQueueJobs(gen.jobs || []);
+        if (gen.scope) {
+          setQueueScope({
+            isTenant: !!gen.scope.isTenant,
+            subdomain: gen.scope.subdomain || null,
+          });
+        }
       }
     } catch {
       setMessage("데이터 로드 실패");
@@ -604,7 +614,14 @@ export default function AdminClient() {
 
           {generationSummary && generationSummary.total > 0 && (
             <div className="mb-4 rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-3 text-sm">
-              <p className="font-medium text-dark mb-1">콘텐츠 자동 최적화 대기열</p>
+              <p className="font-medium text-dark mb-1">
+                콘텐츠 자동 최적화 대기열
+                {queueScope?.isTenant && queueScope.subdomain && (
+                  <span className="ml-2 text-xs font-normal text-orange">
+                    {queueScope.subdomain} 전용
+                  </span>
+                )}
+              </p>
               <p className="text-gray-600 text-xs">
                 대기 <strong className="text-orange">{generationSummary.pending}</strong>
                 {" · "}

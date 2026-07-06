@@ -4,6 +4,7 @@ import { DEFAULT_SITE_CONFIG } from "@/lib/site-config-types";
 import { resolveExposureMode } from "@/lib/exposure-mode";
 import {
   fetchTenantByHostname,
+  fetchTenantById,
   isSupabaseConfigured,
   normalizeHostname,
 } from "@/lib/supabase/tenant-db";
@@ -124,6 +125,34 @@ export async function getResolvedSiteConfig(
       hostname,
     };
   }
+}
+
+/** VM·대기열 처리용 — site_config_id로 테넌트 컨텍스트 조회 */
+export async function getResolvedSiteConfigForTenant(
+  siteConfigId: string
+): Promise<ResolvedSiteContext | null> {
+  if (!isSupabaseConfigured() || !siteConfigId) return null;
+
+  const tenant = await fetchTenantById(siteConfigId);
+  if (!tenant) return null;
+
+  const legacy = await getLegacySiteConfig();
+  const envOverlay = legacyEnvFallback();
+  const baseConfig: SiteConfig = {
+    ...DEFAULT_SITE_CONFIG,
+    ...legacy,
+    ...Object.fromEntries(
+      Object.entries(envOverlay).filter(([, v]) => v !== undefined && v !== "")
+    ),
+  } as SiteConfig;
+
+  return {
+    config: mergeTenantIntoConfig(tenant, baseConfig),
+    tenant,
+    theme: tenant.theme_color,
+    isTenant: true,
+    hostname: normalizeHostname(tenant.subdomain),
+  };
 }
 
 /** 클라이언트 컴포넌트용 — CSS 변수 객체 */

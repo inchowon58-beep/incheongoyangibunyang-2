@@ -8,7 +8,7 @@ import { consumeSeoQuota, getSeoQuotaStatus } from "./seo-quota";
 import { enqueueCollectionRequest } from "./collection-queue";
 import { getServicePeriodStatus } from "./service-period";
 import { normalizeSeoKeyword, finalizeSeoTitle } from "./seo-keyword";
-import { getResolvedSiteConfig } from "@/utils/siteConfig";
+import { getResolvedSiteConfig, getResolvedSiteConfigForTenant } from "@/utils/siteConfig";
 import {
   getTenantPages,
   saveTenantPage,
@@ -31,7 +31,10 @@ export class SeoCreateError extends Error {
   }
 }
 
-export async function createSeoPageFromKeyword(rawKeyword: string): Promise<{
+export async function createSeoPageFromKeyword(
+  rawKeyword: string,
+  options?: { siteConfigId?: string }
+): Promise<{
   page: SeoPage;
   collectionEnqueued: boolean;
   tenantId?: string;
@@ -53,7 +56,16 @@ export async function createSeoPageFromKeyword(rawKeyword: string): Promise<{
   }
 
   const trimmedKeyword = normalizeSeoKeyword(rawKeyword.trim());
-  const { tenant, isTenant, config: site } = await getResolvedSiteConfig();
+
+  const resolved = options?.siteConfigId
+    ? await getResolvedSiteConfigForTenant(options.siteConfigId)
+    : await getResolvedSiteConfig();
+
+  if (options?.siteConfigId && !resolved) {
+    throw new SeoCreateError("테넌트 사이트 설정을 찾을 수 없습니다.", "STORAGE");
+  }
+
+  const { tenant, isTenant, config: site } = resolved!;
 
   const existingPages =
     isTenant && tenant ? await getTenantPages(tenant.id) : await getPages();
