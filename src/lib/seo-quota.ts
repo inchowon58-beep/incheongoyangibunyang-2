@@ -8,8 +8,53 @@ export interface SeoQuotaStatus {
   today: string;
 }
 
+/** VM Worker용 — 한도 초과 시 재시도 시각 안내 */
+export interface SeoQuotaWorkerInfo extends SeoQuotaStatus {
+  exhausted: boolean;
+  canGenerate: boolean;
+  /** KST 자정까지 남은 초 (최소 60) */
+  retryAfterSec: number;
+  /** 다음 생성 가능 시각 (UTC ISO, KST 자정) */
+  nextEligibleAt: string;
+  /** true면 VM은 generate-next 호출 중단 권장 */
+  shouldPause: boolean;
+}
+
 function todayKst(): string {
   return new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Seoul" });
+}
+
+/** KST 자정까지 남은 초 */
+export function getKstSecondsUntilMidnight(): number {
+  const now = new Date();
+  const kstString = now.toLocaleString("sv-SE", { timeZone: "Asia/Seoul" });
+  const timePart = kstString.split(" ")[1] || "00:00:00";
+  const [h, mi, s] = timePart.split(":").map((v) => parseInt(v, 10) || 0);
+  const elapsed = h * 3600 + mi * 60 + s;
+  return Math.max(60, 86400 - elapsed);
+}
+
+export function getNextKstMidnightIso(): string {
+  const sec = getKstSecondsUntilMidnight();
+  return new Date(Date.now() + sec * 1000).toISOString();
+}
+
+export async function getSeoQuotaWorkerInfo(
+  pendingJobCount = 0
+): Promise<SeoQuotaWorkerInfo> {
+  const base = await getSeoQuotaStatus();
+  const retryAfterSec = getKstSecondsUntilMidnight();
+  const exhausted = base.remaining <= 0;
+  const canGenerate = !exhausted;
+
+  return {
+    ...base,
+    exhausted,
+    canGenerate,
+    retryAfterSec,
+    nextEligibleAt: getNextKstMidnightIso(),
+    shouldPause: exhausted && pendingJobCount > 0,
+  };
 }
 
 /** settings.json + 기본값에서 일일 SEO 한도 숫자로 해석 */

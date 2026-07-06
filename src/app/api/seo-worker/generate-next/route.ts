@@ -10,7 +10,8 @@ export const maxDuration = 120;
 /**
  * VM SEO 생성 프로그램 — 대기열에서 1개 꺼내 Gemini 생성
  * POST /api/seo-worker/generate-next
- * Authorization: Bearer {COLLECTION_WORKER_SECRET}
+ *
+ * quota.shouldPause === true → 429 + Retry-After (KST 자정까지)
  */
 export async function POST(request: Request) {
   if (!(await verifyWorkerRequest(request))) {
@@ -19,7 +20,17 @@ export async function POST(request: Request) {
 
   const result = await processNextGenerationJob();
 
-  return NextResponse.json(result, {
-    status: result.ok || result.status === "empty" ? 200 : 503,
-  });
+  const headers: Record<string, string> = {};
+  if (result.retryAfterSec) {
+    headers["Retry-After"] = String(result.retryAfterSec);
+  }
+
+  let httpStatus = 200;
+  if (result.status === "quota") {
+    httpStatus = 429;
+  } else if (!result.ok && result.status !== "empty") {
+    httpStatus = 503;
+  }
+
+  return NextResponse.json(result, { status: httpStatus, headers });
 }

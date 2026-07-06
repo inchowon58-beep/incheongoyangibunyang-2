@@ -66,11 +66,32 @@ Authorization: Bearer {토큰}
 { "ok": true, "status": "empty", "message": "대기 중인 키워드가 없습니다.", "remaining": 0 }
 ```
 
-**일일 한도 초과** — 해당 키워드는 다시 `pending`으로 돌아감 (다음날 재시도 가능)
+**일일 한도 초과** — 키워드는 pending 유지, **429** + `shouldPause: true`
 
 ```json
-{ "ok": false, "status": "quota", "message": "오늘 SEO 페이지 생성 한도..." }
+{
+  "ok": false,
+  "status": "quota",
+  "message": "오늘 SEO 페이지 생성 한도(30개)를 모두 사용했습니다. ...",
+  "remaining": 20,
+  "shouldPause": true,
+  "retryAfterSec": 45234,
+  "nextEligibleAt": "2026-07-06T15:00:00.000Z",
+  "quota": {
+    "limit": 30,
+    "used": 30,
+    "remaining": 0,
+    "exhausted": true,
+    "canGenerate": false,
+    "shouldPause": true
+  }
+}
 ```
+
+HTTP 헤더: `Retry-After: {retryAfterSec}` (KST 자정까지)
+
+**VM 필수:** `shouldPause === true` 또는 `status === "quota"` 이면 `generate-next` 호출 중단하고 `retryAfterSec` 만큼 sleep.  
+`GET /api/seo-worker/jobs` 응답의 `shouldPause`도 동일하게 확인.
 
 ---
 
@@ -78,11 +99,12 @@ Authorization: Bearer {토큰}
 
 ```
 loop:
-  1. (선택) GET /api/seo-worker/jobs — 대기 개수 확인
-  2. POST /api/seo-worker/generate-next — 1개 생성
-  3. status가 empty면 대기열 없음 → 긴 간격 sleep
-  4. status가 quota면 오늘 한도 도달 → 다음날까지 sleep
-  5. random.uniform(min_sec, max_sec) 만큼 대기 후 반복
+  1. GET /api/seo-worker/jobs — shouldPause 확인
+  2. shouldPause === true → retryAfterSec sleep 후 1번으로 (generate-next 호출 금지)
+  3. POST /api/seo-worker/generate-next — 1개 생성
+  4. status가 empty면 대기열 없음 → 긴 간격 sleep
+  5. status가 quota 또는 shouldPause → retryAfterSec sleep (KST 자정까지)
+  6. random.uniform(min_sec, max_sec) 만큼 대기 후 반복
 ```
 
 ### worker_config.json 예시 (기존 수집 설정에 추가)
@@ -114,15 +136,27 @@ MAX_WAIT = 600
 
 while True:
     try:
+        # 1) 한도·대기 상태 먼저 확인 (불필요한 generate-next 방지)
+        status = requests.get(f"{API}/api/seo-worker/jobs", headers=HEADERS, timeout=60)
+        status.raise_for_status()
+        info = status.json()
+        if info.get("shouldPause"):
+            wait = int(info.get("retryAfterSec") or 3600)
+            print(f"quota pause — sleep {wait}s until {info.get('nextEligibleAt')}")
+            time.sleep(wait)
+            continue
+
         r = requests.post(f"{API}/api/seo-worker/generate-next", headers=HEADERS, timeout=180)
         data = r.json()
         print(data.get("message"), "remaining:", data.get("remaining"))
 
+        if data.get("shouldPause") or data.get("status") == "quota":
+            wait = int(data.get("retryAfterSec") or r.headers.get("Retry-After") or 3600)
+            print(f"quota — sleep {wait}s")
+            time.sleep(wait)
+            continue
         if data.get("status") == "empty":
             time.sleep(600)
-            continue
-        if data.get("status") == "quota":
-            time.sleep(3600)
             continue
     except Exception as e:
         print("error:", e)

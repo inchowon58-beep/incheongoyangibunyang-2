@@ -1,34 +1,45 @@
 import { NextResponse } from "next/server";
 import {
-  getGenerationQueueSummary,
-  getPendingGenerationJobsForWorker,
+  getWorkerGenerationStatus,
   verifyWorkerRequest,
 } from "@/lib/generation-queue";
 
 export const dynamic = "force-dynamic";
 
 /**
- * VM SEO 생성 프로그램 — 대기 키워드 목록 조회
+ * VM SEO 생성 프로그램 — 대기 키워드 목록 + 일일 한도 상태
  * GET /api/seo-worker/jobs
  * Authorization: Bearer {COLLECTION_WORKER_SECRET}
+ *
+ * quota.shouldPause === true 이면 generate-next 호출하지 말고 retryAfterSec 만큼 대기
  */
 export async function GET(request: Request) {
   if (!(await verifyWorkerRequest(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const [jobs, summary] = await Promise.all([
-    getPendingGenerationJobsForWorker(),
-    getGenerationQueueSummary(),
-  ]);
+  const { pendingJobs, summary, quota } = await getWorkerGenerationStatus();
 
-  return NextResponse.json({
-    count: jobs.length,
+  const body = {
+    count: pendingJobs.length,
     summary,
-    jobs: jobs.map((j) => ({
+    quota,
+    shouldPause: quota.shouldPause,
+    retryAfterSec: quota.shouldPause ? quota.retryAfterSec : undefined,
+    nextEligibleAt: quota.shouldPause ? quota.nextEligibleAt : undefined,
+    jobs: pendingJobs.map((j) => ({
       id: j.id,
       keyword: j.keyword,
       requestedAt: j.requestedAt,
     })),
-  });
+  };
+
+  const headers: Record<string, string> = {
+    "Cache-Control": "no-store",
+  };
+  if (quota.shouldPause && quota.retryAfterSec) {
+    headers["Retry-After"] = String(quota.retryAfterSec);
+  }
+
+  return NextResponse.json(body, { headers });
 }

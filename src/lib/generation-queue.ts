@@ -9,9 +9,42 @@ import {
 import { normalizeSeoKeyword } from "./seo-keyword";
 import { createSeoPageFromKeyword, SeoCreateError } from "./seo-page-create";
 import { verifyWorkerRequest } from "./collection-queue";
+import { getSeoQuotaWorkerInfo, type SeoQuotaWorkerInfo } from "./seo-quota";
 
-export type { GenerationJob, GenerationJobStatus };
+export type { GenerationJob, GenerationJobStatus, SeoQuotaWorkerInfo };
 export { verifyWorkerRequest };
+
+export interface GenerationWorkerResponse {
+  ok: boolean;
+  status: "created" | "empty" | "quota" | "service" | "duplicate" | "failed" | "busy";
+  message: string;
+  job?: GenerationJob;
+  page?: { id: string; slug: string; keyword: string; title: string };
+  remaining?: number;
+  collectionEnqueued?: boolean;
+  quota?: SeoQuotaWorkerInfo;
+  /** VM sleep 권장 초 (quota/empty 시) */
+  retryAfterSec?: number;
+  nextEligibleAt?: string;
+  shouldPause?: boolean;
+}
+
+function buildQuotaResponse(
+  message: string,
+  quota: SeoQuotaWorkerInfo,
+  remaining: number
+): GenerationWorkerResponse {
+  return {
+    ok: false,
+    status: "quota",
+    message,
+    remaining,
+    quota,
+    retryAfterSec: quota.retryAfterSec,
+    nextEligibleAt: quota.nextEligibleAt,
+    shouldPause: quota.shouldPause,
+  };
+}
 
 const STALE_PROCESSING_MS = 15 * 60 * 1000;
 
@@ -138,15 +171,20 @@ export async function getPendingGenerationJobsForWorker(): Promise<GenerationJob
     .sort((a, b) => a.requestedAt.localeCompare(b.requestedAt));
 }
 
-export async function processNextGenerationJob(): Promise<{
-  ok: boolean;
-  status: "created" | "empty" | "quota" | "service" | "duplicate" | "failed";
-  message: string;
-  job?: GenerationJob;
-  page?: { id: string; slug: string; keyword: string; title: string };
-  remaining?: number;
-  collectionEnqueued?: boolean;
+export async function getWorkerGenerationStatus(): Promise<{
+  summary: GenerationQueueSummary;
+  pendingJobs: GenerationJob[];
+  quota: SeoQuotaWorkerInfo;
 }> {
+  const pendingJobs = await getPendingGenerationJobsForWorker();
+  const [summary, quota] = await Promise.all([
+    getGenerationQueueSummary(),
+    getSeoQuotaWorkerInfo(pendingJobs.length),
+  ]);
+  return { summary, pendingJobs, quota };
+}
+
+export async function processNextGenerationJob(): Promise<GenerationWorkerResponse> {
   const queue = await getGenerationQueue();
   if (await releaseStaleProcessingJobs(queue)) {
     queue.updatedAt = new Date().toISOString();
@@ -154,14 +192,40 @@ export async function processNextGenerationJob(): Promise<{
   }
 
   const processing = queue.jobs.find((j) => j.status === "processing");
+  const pendingCount = queue.jobs.filter((j) => j.status === "pending").length;
+
   if (processing) {
+    const quota = await getSeoQuotaWorkerInfo(pendingCount);
     return {
       ok: false,
-      status: "failed",
+      status: "busy",
       message: "다른 키워드 생성이 진행 중입니다. 잠시 후 다시 시도하세요.",
       job: processing,
-      remaining: queue.jobs.filter((j) => j.status === "pending").length,
+      remaining: pendingCount,
+      quota,
     };
+  }
+
+  if (pendingCount === 0) {
+    const quota = await getSeoQuotaWorkerInfo(0);
+    return {
+      ok: true,
+      status: "empty",
+      message: "대기 중인 키워드가 없습니다.",
+      remaining: 0,
+      quota,
+      retryAfterSec: 600,
+      shouldPause: false,
+    };
+  }
+
+  const quota = await getSeoQuotaWorkerInfo(pendingCount);
+  if (!quota.canGenerate) {
+    return buildQuotaResponse(
+      `오늘 SEO 페이지 생성 한도(${quota.limit}개)를 모두 사용했습니다. ${quota.nextEligibleAt} (KST 자정) 이후 VM이 다시 시도하세요.`,
+      quota,
+      pendingCount
+    );
   }
 
   const next = queue.jobs
@@ -174,6 +238,8 @@ export async function processNextGenerationJob(): Promise<{
       status: "empty",
       message: "대기 중인 키워드가 없습니다.",
       remaining: 0,
+      quota,
+      retryAfterSec: 600,
     };
   }
 
@@ -194,6 +260,7 @@ export async function processNextGenerationJob(): Promise<{
     await saveGenerationQueue(queue);
 
     const remaining = queue.jobs.filter((j) => j.status === "pending").length;
+    const quotaAfter = await getSeoQuotaWorkerInfo(remaining);
     return {
       ok: true,
       status: "created",
@@ -207,6 +274,10 @@ export async function processNextGenerationJob(): Promise<{
       },
       remaining,
       collectionEnqueued,
+      quota: quotaAfter,
+      shouldPause: quotaAfter.shouldPause,
+      retryAfterSec: quotaAfter.canGenerate ? undefined : quotaAfter.retryAfterSec,
+      nextEligibleAt: quotaAfter.canGenerate ? undefined : quotaAfter.nextEligibleAt,
     };
   } catch (error) {
     const completedAt = new Date().toISOString();
@@ -218,12 +289,16 @@ export async function processNextGenerationJob(): Promise<{
         next.startedAt = undefined;
         queue.updatedAt = completedAt;
         await saveGenerationQueue(queue);
+        const quotaBlocked = await getSeoQuotaWorkerInfo(
+          queue.jobs.filter((j) => j.status === "pending").length
+        );
         return {
-          ok: false,
-          status: "quota",
-          message: error.message,
+          ...buildQuotaResponse(
+            error.message,
+            quotaBlocked,
+            queue.jobs.filter((j) => j.status === "pending").length
+          ),
           job: next,
-          remaining: queue.jobs.filter((j) => j.status === "pending").length,
         };
       }
 
