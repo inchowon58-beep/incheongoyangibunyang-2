@@ -2,21 +2,23 @@ import Link from "next/link";
 import { getSiteConfig } from "@/lib/site-config";
 import { INQUIRY_SECTION_ID, inquiryAccentButtonClass } from "@/lib/exposure-mode";
 import { getResolvedSiteConfig } from "@/utils/siteConfig";
+import { buildHeroSubcopy } from "@/lib/brand-copy";
 
 export default async function HeroC() {
   const site = await getSiteConfig();
-  const { tenantUi } = await getResolvedSiteConfig();
+  const { tenant, tenantUi } = await getResolvedSiteConfig();
 
   const lines = tenantUi?.heroLines || ["함께할 수 없을 때,", "버리지 말고", "안전하게 맡기세요."];
   const subline =
+    tenantUi?.heroSubcopy ||
     tenantUi?.heroSubline ||
-    `${site.brandName}은 강아지·고양이 파양 입소와 무료분양·무료입양 매칭을 현실적인 입소 비용으로 진행합니다.`;
+    buildHeroSubcopy(tenant?.subdomain || site.brandName);
 
   return (
     <section className="home-c-hero relative py-20 lg:py-32">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <p className="text-xs tracking-[0.25em] uppercase text-stone-400 mb-8">
-          강아지·고양이 파양 · {site.brandName}
+          {tenantUi?.heroHeadline || site.brandName}
         </p>
 
         <h1 className="home-c-editorial text-4xl sm:text-5xl lg:text-7xl font-light text-stone-900 leading-[1.15] tracking-tight mb-8">

@@ -31,6 +31,10 @@ export interface TenantContentData {
   heroBadge?: string;
   heroIntro?: string;
   heroClosing?: string;
+  /** 로고 하단 감성 슬로건 */
+  heroHeadline?: string;
+  /** 히어로 본문 — 브랜드명 반복 없음 */
+  heroSubcopy?: string;
   heroLead?: string;
   heroImageIndex?: number;
   supportImageIndex?: number;

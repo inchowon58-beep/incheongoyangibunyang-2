@@ -27,6 +27,9 @@ export default function HeaderB() {
         <div className="flex items-center justify-between h-16 lg:h-[4.5rem]">
           <Link href="/" className="font-black text-dark text-lg lg:text-xl hover:text-orange transition">
             {site.brandName}
+            <span className="block text-[10px] sm:text-xs font-normal text-gray-400 mt-0.5">
+              {site.tagline}
+            </span>
           </Link>
 
           <nav className="hidden lg:flex items-center gap-5">

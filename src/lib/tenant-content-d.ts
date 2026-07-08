@@ -180,7 +180,7 @@ export function pickDesignDExtras(
   return {
     heroEyebrow: pickOne(HERO_EYEBROWS, rng),
     heroKeyword: firstKeyword || `${region}강아지파양`,
-    heroSubline: `프리미엄 파양·무료분양 · ${siteName}`,
+    heroSubline: `프리미엄 파양·무료분양 전문 센터`,
     aboutFeatures,
     serviceCards,
     guideItems: GUIDE_ITEMS,

@@ -4,23 +4,25 @@ import { getSiteConfig, phoneToTel } from "@/lib/site-config";
 import { getImageUrl } from "@/lib/site-images";
 import { INQUIRY_SECTION_ID, inquiryAccentButtonClass, showCompanyContact } from "@/lib/exposure-mode";
 import { getResolvedSiteConfig } from "@/utils/siteConfig";
+import { buildHeroSubcopy } from "@/lib/brand-copy";
 
 export default async function HeroD() {
   const site = await getSiteConfig();
   const showCompany = showCompanyContact(site.exposureMode);
-  const { tenantUi } = await getResolvedSiteConfig();
+  const { tenant, tenantUi } = await getResolvedSiteConfig();
 
   const eyebrow = tenantUi?.heroEyebrow || "Premium Pet Care Center";
-  const keyword = tenantUi?.heroKeyword || "강아지·고양이 파양";
+  const headline = tenantUi?.heroHeadline || site.brandName;
   const subline =
+    tenantUi?.heroSubcopy ||
     tenantUi?.heroSubline ||
-    `파양·무료분양과 체계적인 입소 케어를 경험하세요`;
+    buildHeroSubcopy(tenant?.subdomain || site.brandName);
 
   return (
     <section className="home-d-hero relative min-h-[85vh] flex items-center overflow-hidden bg-gray-900">
       <Image
         src={getImageUrl(tenantUi?.heroImageIndex || 1, site)}
-        alt={`${site.brandName} ${keyword} 전문`}
+        alt={`${site.brandName} 파양·무료분양`}
         fill
         className="object-cover opacity-50"
         priority
@@ -32,20 +34,12 @@ export default async function HeroD() {
           {eyebrow}
         </p>
 
-        <h1 className="home-d-display text-3xl sm:text-4xl lg:text-5xl xl:text-6xl text-white leading-tight mb-6">
-          <span className="font-semibold">{keyword} 전문</span>
-          <br />
-          <span className="font-light italic text-white/95">{site.brandName}</span>
-          <br />
-          <span className="text-xl sm:text-2xl lg:text-3xl font-light text-gray-300 tracking-wide">
-            Trusted <em className="not-italic text-orange">Pet Care</em>
-          </span>
+        <h1 className="home-d-display text-2xl sm:text-3xl lg:text-4xl xl:text-5xl text-white leading-snug mb-6">
+          {headline}
         </h1>
 
         <p className="text-sm sm:text-base text-gray-300 max-w-2xl mx-auto mb-10 leading-relaxed">
           {subline}
-          <br />
-          <span className="text-gray-400">{site.brandName}</span>
         </p>
 
         <div className="flex flex-wrap justify-center gap-3">

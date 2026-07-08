@@ -28,8 +28,8 @@ export default function HeaderD() {
             <span className="block text-base lg:text-lg font-semibold text-gray-900 tracking-tight">
               {site.brandName}
             </span>
-            <span className="block text-[10px] text-gray-400 tracking-[0.15em] uppercase">
-              Pet Care Center
+            <span className="block text-[10px] text-gray-400 tracking-wide mt-0.5">
+              {site.tagline}
             </span>
           </Link>
 

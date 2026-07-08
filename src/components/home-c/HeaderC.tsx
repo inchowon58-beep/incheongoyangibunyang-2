@@ -29,8 +29,8 @@ export default function HeaderC() {
             <span className="block text-base lg:text-lg font-semibold text-stone-900 tracking-tight">
               {site.brandName}
             </span>
-            <span className="block text-[10px] text-stone-400 tracking-[0.2em] uppercase">
-              Pet Care Center
+            <span className="block text-[10px] text-stone-400 tracking-wide">
+              {site.tagline}
             </span>
           </Link>
 

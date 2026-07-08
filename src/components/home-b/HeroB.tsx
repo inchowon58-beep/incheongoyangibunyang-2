@@ -5,13 +5,17 @@ import { getImageUrl } from "@/lib/site-images";
 import { INQUIRY_SECTION_ID, inquiryAccentButtonClass, showCompanyContact } from "@/lib/exposure-mode";
 import { getResolvedSiteConfig } from "@/utils/siteConfig";
 import { getDefaultStats } from "@/lib/tenant-content";
+import { buildHeroSubcopy } from "@/lib/brand-copy";
 
 export default async function HeroB() {
   const site = await getSiteConfig();
   const showCompany = showCompanyContact(site.exposureMode);
-  const { tenantUi } = await getResolvedSiteConfig();
-  const keyword = tenantUi?.heroKeyword || "강아지·고양이 파양";
-  const subline = tenantUi?.heroSubline || `파양·무료분양 전문 · ${site.brandName}`;
+  const { tenant, tenantUi } = await getResolvedSiteConfig();
+  const headline = tenantUi?.heroHeadline || site.brandName;
+  const subcopy =
+    tenantUi?.heroSubcopy ||
+    tenantUi?.aboutText ||
+    buildHeroSubcopy(tenant?.subdomain || site.brandName);
   const stats = tenantUi?.stats?.length ? tenantUi.stats : getDefaultStats();
   const badges = tenantUi?.trustBadges || [];
 
@@ -30,16 +34,11 @@ export default async function HeroB() {
         <p className="text-sm text-orange font-semibold mb-4 tracking-wide">
           365일 파양·무료분양 상담 접수
         </p>
-        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight mb-4">
-          {keyword}
-          <br />
-          <span className="text-orange">{site.brandName}</span>가
-          <br />
-          함께합니다
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-snug mb-6">
+          {headline}
         </h1>
-        <p className="text-sm sm:text-base text-gray-200 font-medium mb-3">{subline}</p>
-        <p className="text-sm text-gray-300 leading-relaxed max-w-2xl mx-auto mb-8">
-          {tenantUi?.aboutText || site.description}
+        <p className="text-sm sm:text-base text-gray-300 leading-relaxed max-w-2xl mx-auto mb-8">
+          {subcopy}
         </p>
 
         <div className="flex flex-wrap justify-center gap-3 mb-10">

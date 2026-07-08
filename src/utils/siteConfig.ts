@@ -49,7 +49,7 @@ function mergeTenantIntoConfig(
     ...legacy,
     brandName: tenant.site_name || legacy.brandName,
     url: `${proto}://${tenant.subdomain}`,
-    tagline: content.tagline || tenant.site_name || legacy.tagline,
+    tagline: content.tagline || legacy.tagline,
     description: content.description || content.aboutText || content.body?.slice(0, 160) || legacy.description,
     supportBase: content.supportBase || legacy.supportBase,
     supportExtra: content.supportExtra || legacy.supportExtra,
@@ -100,7 +100,10 @@ export async function getResolvedSiteConfig(
       baseConfig.imageCount
     );
     return {
-      config: baseConfig,
+      config: {
+        ...baseConfig,
+        tagline: legacyUi.tagline || baseConfig.tagline,
+      },
       tenant: null,
       tenantUi: legacyUi,
       theme: null,
@@ -121,7 +124,10 @@ export async function getResolvedSiteConfig(
         baseConfig.imageCount
       );
       return {
-        config: baseConfig,
+        config: {
+          ...baseConfig,
+          tagline: legacyUi.tagline || baseConfig.tagline,
+        },
         tenant: null,
         tenantUi: legacyUi,
         theme: null,

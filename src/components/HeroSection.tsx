@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getSiteConfig, phoneToTel } from "@/lib/site-config";
 import { getImageUrl } from "@/lib/site-images";
 import { INQUIRY_SECTION_ID, inquiryAccentButtonClass, showCompanyContact } from "@/lib/exposure-mode";
+import { buildHeroSubcopy } from "@/lib/brand-copy";
 
 export default async function HeroSection() {
   const site = await getSiteConfig();
@@ -12,8 +13,8 @@ export default async function HeroSection() {
   const ui = tenantUi ?? tenant?.content_data;
 
   const badge = ui?.heroBadge || "강아지·고양이 파양·무료분양 전문";
-  const intro = ui?.heroIntro || "파양견·파양묘 입소부터 새 가족 매칭까지";
-  const closing = ui?.heroClosing || "를 한곳에서 진행합니다";
+  const headline = ui?.heroHeadline || site.brandName;
+  const subcopy = ui?.heroSubcopy || buildHeroSubcopy(tenant?.subdomain || site.brandName);
   const variant = ui?.designVariant || "classic";
 
   return (
@@ -35,15 +36,10 @@ export default async function HeroSection() {
           <span className="hero-badge inline-block bg-orange text-white text-sm font-bold px-4 py-1.5 rounded-full mb-6">
             {badge}
           </span>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-tight mb-4">
-            {site.tagline}
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-tight mb-4">
+            {headline}
           </h1>
-          <p className="text-lg sm:text-xl text-gray-200 mb-8 leading-relaxed">
-            {intro}
-            <br />
-            <strong className="text-orange">{site.brandName}</strong>
-            {closing}
-          </p>
+          <p className="text-lg sm:text-xl text-gray-200 mb-8 leading-relaxed">{subcopy}</p>
 
           <div className={`flex flex-wrap gap-3 ${variant === "modern" ? "lg:justify-end" : ""}`}>
             {showCompany && (

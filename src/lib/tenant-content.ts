@@ -3,6 +3,13 @@ import { type SiteDesignId, DEFAULT_SITE_DESIGN } from "@/lib/site-designs";
 import { pickDesignBExtras } from "@/lib/tenant-content-b";
 import { pickDesignCExtras } from "@/lib/tenant-content-c";
 import { pickDesignDExtras } from "@/lib/tenant-content-d";
+import {
+  buildHeroHeadline,
+  buildHeroSubcopy,
+  pickLogoTagline,
+  shouldRefreshHeroHeadline,
+  shouldRefreshLogoTagline,
+} from "@/lib/brand-copy";
 
 export type DesignVariant = "classic" | "modern" | "bold";
 export type HeaderStyle = "sticky" | "overlay" | "minimal" | "hidden";
@@ -438,9 +445,9 @@ export function pickTenantContentPackage(
     stats: buildPetStats(rng),
     casesCount,
     casesItems: pickCases(rng, casesCount, region, maxImages),
-    tagline: firstKeyword.includes("입양") || firstKeyword.includes("보호")
-      ? `${firstKeyword} · ${siteName}`
-      : `${siteName} | ${firstKeyword}`,
+    tagline: pickLogoTagline(seed),
+    heroHeadline: buildHeroHeadline(siteName, keywords, seed),
+    heroSubcopy: buildHeroSubcopy(seed),
     description: about.slice(0, 160) || `${siteName} 공식 사이트`,
     keywords,
     body: bodyContent || about,
@@ -492,23 +499,43 @@ export function resolveTenantContentData(
   bodyContent = "",
   imageCount = 20
 ): TenantContentData {
-  if (content?.layoutSeed != null && content.sectionOrder?.length) {
-    return content;
-  }
-
+  const kw = keywords || content?.keywords || "";
   const pkg = pickTenantContentPackage(
     subdomain,
     siteName,
-    keywords || content?.keywords || "",
+    kw,
     bodyContent || content?.body || "",
     imageCount,
     content?.siteDesign || DEFAULT_SITE_DESIGN
   );
 
+  const tagline =
+    content?.tagline && !shouldRefreshLogoTagline(content.tagline, siteName)
+      ? content.tagline
+      : pickLogoTagline(subdomain);
+
+  const heroHeadline =
+    content?.heroHeadline && !shouldRefreshHeroHeadline(content.heroHeadline, siteName)
+      ? content.heroHeadline
+      : buildHeroHeadline(siteName, kw, subdomain);
+
+  const heroSubcopy = content?.heroSubcopy || buildHeroSubcopy(subdomain);
+
+  if (content?.layoutSeed != null && content.sectionOrder?.length) {
+    return {
+      ...content,
+      tagline,
+      heroHeadline,
+      heroSubcopy,
+    };
+  }
+
   return {
     ...pkg,
-    tagline: content?.tagline || pkg.tagline,
-    keywords: content?.keywords || pkg.keywords,
+    tagline,
+    heroHeadline,
+    heroSubcopy,
+    keywords: kw || pkg.keywords,
     body: content?.body || pkg.body,
     description: content?.description || pkg.description,
     aboutText: content?.aboutText || pkg.aboutText,

@@ -191,7 +191,7 @@ export function pickDesignBExtras(
       { label: "입소 건강검진", value: "100", suffix: "%" },
     ],
     faqItems: shuffle(FAQ_POOL, rng).slice(0, 5),
-    heroSubline: `강아지·고양이 파양·무료분양 · ${siteName}`,
+    heroSubline: `파양·무료분양 · ${siteName}`,
     sectionOrder: [
       "about",
       "business",
