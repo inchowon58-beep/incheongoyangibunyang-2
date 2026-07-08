@@ -3,7 +3,6 @@ import { isAuthenticated } from "@/lib/auth";
 import { DataStorageError, deletePage } from "@/lib/data";
 import { createSeoPageFromKeyword, SeoCreateError } from "@/lib/seo-page-create";
 import { removeCollectionJobsForPage } from "@/lib/collection-queue";
-import { removeRankingForPage } from "@/lib/seo-ranking";
 import { resolvePagesContext } from "@/lib/pages-resolver";
 import { deleteTenantPage } from "@/lib/supabase/tenant-pages";
 import { getResolvedSiteConfig } from "@/utils/siteConfig";
@@ -71,7 +70,6 @@ export async function DELETE(req: NextRequest) {
     await deleteTenantPage(tenant.id, id);
   } else {
     await deletePage(id);
-    await removeRankingForPage(id);
     await removeCollectionJobsForPage(id);
   }
 

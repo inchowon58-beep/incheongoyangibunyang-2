@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { guidePageUrl } from "@/lib/constants";
 import { MAX_BULK_KEYWORDS } from "@/lib/parse-keywords";
-import RankingHistoryModal from "@/components/RankingHistoryModal";
 
 interface SeoPage {
   id: string;
@@ -13,14 +12,6 @@ interface SeoPage {
   keyword: string;
   title: string;
   createdAt: string;
-}
-
-interface RankingSummary {
-  pageId: string;
-  keyword: string;
-  rank: number | null;
-  change: number | null;
-  checkedAt: string | null;
 }
 
 interface SeoQuota {
@@ -83,11 +74,6 @@ export default function AdminClient() {
   const [generating, setGenerating] = useState(false);
   const [message, setMessage] = useState("");
   const [copiedPageId, setCopiedPageId] = useState<string | null>(null);
-  const [rankings, setRankings] = useState<Map<string, RankingSummary>>(new Map());
-  const [rankingsUpdated, setRankingsUpdated] = useState<string | null>(null);
-  const [hasNaverApi, setHasNaverApi] = useState(false);
-  const [rankModal, setRankModal] = useState<{ pageId: string; keyword: string } | null>(null);
-  const [checkingRanks, setCheckingRanks] = useState(false);
   const [collectionStatuses, setCollectionStatuses] = useState<
     Map<string, { status: string; pageUrl: string }>
   >(new Map());
@@ -99,25 +85,14 @@ export default function AdminClient() {
   const naverBtnDone =
     "inline-flex items-center justify-center px-3.5 py-2 text-xs font-bold text-white bg-[#03C75A] rounded-[3px] shadow-sm cursor-default select-none";
 
-  function formatRank(rank: number | null): string {
-    if (rank === null) return "-";
-    return `${rank}위`;
-  }
-
-  function formatRankChange(change: number | null): string {
-    if (change === null || change === 0) return "";
-    return change > 0 ? ` ▲${change}` : ` ▼${Math.abs(change)}`;
-  }
-
   async function loadData() {
     setLoading(true);
     try {
-      const [pagesRes, quotaRes, configRes, rankingsRes, collectionRes, generationRes] =
+      const [pagesRes, quotaRes, configRes, collectionRes, generationRes] =
         await Promise.all([
         fetch("/api/admin/pages", { cache: "no-store" }),
         fetch("/api/admin/seo-quota", { cache: "no-store" }),
         fetch("/api/site-config", { cache: "no-store" }),
-        fetch("/api/admin/seo-rankings", { cache: "no-store" }),
         fetch("/api/admin/collection-request", { cache: "no-store" }),
         fetch("/api/admin/generation-queue", { cache: "no-store" }),
       ]);
@@ -133,14 +108,6 @@ export default function AdminClient() {
       if (configRes.ok) {
         const config = await configRes.json();
         setBrandName(config.brandName || "");
-      }
-      if (rankingsRes.ok) {
-        const data = await rankingsRes.json();
-        setRankings(new Map(data.summaries.map((s: RankingSummary) => [s.pageId, s])));
-        setRankingsUpdated(data.lastUpdated || null);
-        setHasNaverApi(!!data.hasNaverApi);
-      } else if (rankingsRes.status === 404) {
-        setMessage("배포가 아직 반영되지 않았습니다. Vercel 재배포 후 새로고침하세요.");
       }
       if (collectionRes.ok) {
         const col = await collectionRes.json();
@@ -198,17 +165,6 @@ export default function AdminClient() {
       window.removeEventListener("pageshow", onPageShow);
     };
   }, []);
-
-  const topRankedPages = useMemo(() => {
-    return pages
-      .map((page) => ({
-        page,
-        rank: rankings.get(page.id)?.rank ?? null,
-      }))
-      .filter((item): item is { page: SeoPage; rank: number } => item.rank !== null && item.rank > 0)
-      .sort((a, b) => a.rank - b.rank)
-      .slice(0, 5);
-  }, [pages, rankings]);
 
   const sortedPages = useMemo(() => {
     return [...pages].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -402,28 +358,6 @@ export default function AdminClient() {
     }
   };
 
-  const handleCheckRankings = async () => {
-    if (!hasNaverApi) {
-      setMessage("Naver 검색 API를 마스터 설정 또는 Vercel 환경변수에 등록해 주세요.");
-      return;
-    }
-    setCheckingRanks(true);
-    setMessage("네이버 웹문서 순위 확인 중... (페이지 수에 따라 1~2분 소요)");
-    try {
-      const res = await fetch("/api/admin/seo-rankings/check", { method: "POST" });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok) {
-        setMessage(`순위 확인 완료: ${data.checked}개 페이지 (${data.errors?.length ? `오류 ${data.errors.length}건` : "성공"})`);
-        await loadData();
-      } else {
-        setMessage(data.error || "순위 확인에 실패했습니다.");
-      }
-    } catch {
-      setMessage("순위 확인 중 오류가 발생했습니다.");
-    }
-    setCheckingRanks(false);
-  };
-
   const handleCollectionRequest = async (pageId: string) => {
     setRequestingCollection(pageId);
     try {
@@ -446,7 +380,6 @@ export default function AdminClient() {
   }
 
   function renderPageRow(page: SeoPage) {
-    const rankInfo = rankings.get(page.id);
     const collectionDone = isCollectionSubmitted(page.id);
     return (
       <div
@@ -457,20 +390,6 @@ export default function AdminClient() {
           <p className="font-medium text-dark text-sm">{page.title}</p>
           <p className="text-xs text-gray-400 mt-1 break-all">
             {page.keyword} · {guidePageUrl(page.slug)}
-          </p>
-          <p className="text-xs mt-2">
-            <span className="text-gray-500">네이버 순위 </span>
-            <span className="font-semibold text-[#03C75A]">
-              {hasNaverApi ? formatRank(rankInfo?.rank ?? null) : "API 미설정"}
-            </span>
-            {hasNaverApi && rankInfo?.change != null && rankInfo.change !== 0 && (
-              <span className={rankInfo.change > 0 ? "text-emerald-600" : "text-red-500"}>
-                {formatRankChange(rankInfo.change)}
-              </span>
-            )}
-            {hasNaverApi && rankInfo?.rank === null && rankInfo?.checkedAt === null && (
-              <span className="text-gray-400"> · 상단 「네이버 순위 지금 확인」 클릭</span>
-            )}
           </p>
         </div>
         <div className="flex flex-wrap gap-2 shrink-0">
@@ -488,14 +407,6 @@ export default function AdminClient() {
               {requestingCollection === page.id ? "등록 중..." : "순위반영요청"}
             </button>
           )}
-          <button
-            type="button"
-            onClick={() => setRankModal({ pageId: page.id, keyword: page.keyword })}
-            className="text-xs px-3 py-1.5 border border-orange/40 text-orange rounded-lg hover:bg-orange/5 disabled:opacity-40"
-            disabled={!hasNaverApi}
-          >
-            순위변동 확인
-          </button>
           <Link
             href={guidePageUrl(page.slug)}
             target="_blank"
@@ -576,14 +487,6 @@ export default function AdminClient() {
                   <span className="text-orange">{quota.remaining}개</span>
                   <span className="text-gray-500 font-normal"> / {quota.limit}개</span>
                 </p>
-                <button
-                  type="button"
-                  onClick={handleCheckRankings}
-                  disabled={checkingRanks || !hasNaverApi}
-                  className={naverBtn}
-                >
-                  {checkingRanks ? "순위 확인 중..." : "네이버 순위 지금 확인"}
-                </button>
               </div>
             </div>
           )
@@ -921,53 +824,6 @@ export default function AdminClient() {
         <div className="bg-white rounded-2xl shadow-sm p-6">
           <h2 className="font-bold text-dark mb-4">생성된 SEO 페이지 ({pages.length})</h2>
 
-          {pages.length > 0 && (
-            <div className="mb-6 rounded-lg border border-[#03C75A]/20 bg-[#f8fbf9] p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#03C75A] text-[10px] text-white font-black">
-                  N
-                </span>
-                <h3 className="text-sm font-bold text-[#03C75A]">순위 상위 TOP 5</h3>
-              </div>
-              {topRankedPages.length === 0 ? (
-                <p className="text-xs text-gray-400">
-                  {hasNaverApi
-                    ? "「네이버 순위 지금 확인」 실행 후 상위 키워드가 표시됩니다."
-                    : "Naver API 설정 후 순위를 확인할 수 있습니다."}
-                </p>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
-                  {topRankedPages.map(({ page, rank }, index) => (
-                    <div
-                      key={page.id}
-                      className="bg-white border border-gray-200 rounded-[3px] px-3 py-2.5 hover:border-[#03C75A]/50 transition-colors"
-                    >
-                      <span className="text-[10px] font-medium text-gray-400">TOP {index + 1}</span>
-                      <p
-                        className="text-xs text-gray-900 mt-1 truncate font-medium"
-                        title={page.keyword}
-                      >
-                        {page.keyword}
-                      </p>
-                      <p className="text-sm font-bold text-[#03C75A] mt-1.5">{formatRank(rank)}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {rankingsUpdated && (
-            <p className="text-xs text-gray-400 mb-4">
-              순위 갱신 {new Date(rankingsUpdated).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })}
-            </p>
-          )}
-          {!hasNaverApi && (
-            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mb-4">
-              Naver 검색 API(Client ID/Secret)가 없어 순위 확인이 불가합니다. 마스터 설정 또는 Vercel
-              환경변수(NAVER_CLIENT_ID, NAVER_CLIENT_SECRET)를 등록하세요.
-            </p>
-          )}
           {loading ? (
             <p className="text-gray-400">로딩 중...</p>
           ) : pages.length === 0 ? (
@@ -1023,14 +879,6 @@ export default function AdminClient() {
           )}
         </div>
       </div>
-
-      {rankModal && (
-        <RankingHistoryModal
-          pageId={rankModal.pageId}
-          keyword={rankModal.keyword}
-          onClose={() => setRankModal(null)}
-        />
-      )}
     </div>
   );
 }
