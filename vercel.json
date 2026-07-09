@@ -1,3 +1,11 @@
 {
-  "crons": []
+  "crons": [],
+  "functions": {
+    "src/app/api/seo-worker/generate-next/route.ts": {
+      "maxDuration": 300
+    },
+    "src/app/api/admin/pages/route.ts": {
+      "maxDuration": 300
+    }
+  }
 }

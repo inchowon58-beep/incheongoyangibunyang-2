@@ -8,6 +8,7 @@ import { consumeSeoQuota, getSeoQuotaStatus, getSeoQuotaStatusForTenant } from "
 import { enqueueCollectionRequest } from "./collection-queue";
 import { getServicePeriodStatus } from "./service-period";
 import { normalizeSeoKeyword, finalizeSeoTitle } from "./seo-keyword";
+import { extractRegionFromKeyword } from "./region-parse";
 import { getResolvedSiteConfig, getResolvedSiteConfigForTenant } from "@/utils/siteConfig";
 import {
   getTenantPages,
@@ -33,7 +34,7 @@ export class SeoCreateError extends Error {
 
 export async function createSeoPageFromKeyword(
   rawKeyword: string,
-  options?: { siteConfigId?: string }
+  options?: { siteConfigId?: string; skipLocalPartners?: boolean }
 ): Promise<{
   page: SeoPage;
   collectionEnqueued: boolean;
@@ -114,10 +115,9 @@ export async function createSeoPageFromKeyword(
     existingPages.map((p) => p.slug)
   );
 
-  const { region, partners } = await resolveLocalPartnersForKeyword(
-    trimmedKeyword,
-    getNaverCredentials(site)
-  );
+  const { region, partners } = options?.skipLocalPartners
+    ? { region: extractRegionFromKeyword(trimmedKeyword), partners: [] as never[] }
+    : await resolveLocalPartnersForKeyword(trimmedKeyword, getNaverCredentials(site));
 
   const page: SeoPage = {
     id: pageId,

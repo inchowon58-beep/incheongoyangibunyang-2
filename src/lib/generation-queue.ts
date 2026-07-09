@@ -124,7 +124,7 @@ function buildQuotaResponse(
   };
 }
 
-const STALE_PROCESSING_MS = 15 * 60 * 1000;
+const STALE_PROCESSING_MS = 2.5 * 60 * 1000;
 
 export interface GenerationQueueSummary {
   pending: number;
@@ -364,7 +364,7 @@ export async function processNextGenerationJob(): Promise<GenerationWorkerRespon
   try {
     const { page, collectionEnqueued } = await createSeoPageFromKeyword(
       next.keyword,
-      createOptions
+      { ...createOptions, skipLocalPartners: true }
     );
     next.status = "completed";
     next.completedAt = new Date().toISOString();
