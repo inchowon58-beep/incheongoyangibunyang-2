@@ -92,3 +92,28 @@ export async function updateTenantDailySeoLimit(
 
   if (error) throw new Error(error.message);
 }
+
+/** 마스터 「하루 생성 가능 수량」 변경 시 등록된 모든 테넌트 한도 동기화 */
+export async function syncAllTenantsDailySeoLimit(
+  dailySeoLimit: number
+): Promise<number> {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return 0;
+
+  const limit = Math.max(0, dailySeoLimit);
+  const { data: rows, error: listError } = await supabase
+    .from("site_configs")
+    .select("id");
+
+  if (listError) throw new Error(`테넌트 목록 조회 실패: ${listError.message}`);
+  if (!rows?.length) return 0;
+
+  const ids = rows.map((r) => r.id as string);
+  const { error } = await supabase
+    .from("site_configs")
+    .update({ daily_seo_limit: limit })
+    .in("id", ids);
+
+  if (error) throw new Error(`테넌트 한도 동기화 실패: ${error.message}`);
+  return ids.length;
+}

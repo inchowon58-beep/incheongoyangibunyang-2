@@ -284,9 +284,11 @@ export async function POST(req: NextRequest) {
     const defaultLimit = resolveDailySeoLimit(settings);
     const dailySeoLimitRaw = body.dailySeoLimit;
     const dailySeoLimit =
-      dailySeoLimitRaw !== undefined && dailySeoLimitRaw !== null && String(dailySeoLimitRaw).trim() !== ""
+      dailySeoLimitRaw !== undefined &&
+      dailySeoLimitRaw !== null &&
+      String(dailySeoLimitRaw).trim() !== ""
         ? Math.max(0, Number.parseInt(String(dailySeoLimitRaw), 10) || defaultLimit)
-        : defaultLimit;
+        : null;
 
     let linkedNaverAccountId: string | null = null;
     if (naverAccountId) {

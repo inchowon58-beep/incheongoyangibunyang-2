@@ -9,6 +9,8 @@ import {
 import { resolveExposureMode } from "@/lib/exposure-mode";
 import { resolveDailySeoLimit } from "@/lib/seo-quota";
 import { resolveSlackWebhookUrl } from "@/lib/slack-notify";
+import { syncAllTenantsDailySeoLimit } from "@/lib/supabase/tenant-quota";
+import { isSupabaseConfigured } from "@/lib/supabase/tenant-db";
 
 const SITE_FIELDS = [
   "brandName",
@@ -118,9 +120,38 @@ export async function PUT(req: NextRequest) {
   }
 
   await saveSettings(updated);
+
+  const dailySeoLimit = resolveDailySeoLimit(updated);
+  let tenantsSynced = 0;
+  if (
+    body.dailySeoLimit !== undefined &&
+    body.dailySeoLimit !== null &&
+    isSupabaseConfigured()
+  ) {
+    try {
+      tenantsSynced = await syncAllTenantsDailySeoLimit(dailySeoLimit);
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "테넌트 한도 동기화 실패";
+      return NextResponse.json(
+        {
+          success: true,
+          warning: message,
+          dailySeoLimit,
+          tenantsSynced: 0,
+          serviceAvailableDays:
+            updated.serviceAvailableDays ?? DEFAULT_SITE_CONFIG.serviceAvailableDays,
+          serviceExpiresAt: updated.serviceExpiresAt,
+          serviceDaysRemaining: daysRemainingFromExpiresAt(updated.serviceExpiresAt),
+        },
+        { status: 200 }
+      );
+    }
+  }
+
   return NextResponse.json({
     success: true,
-    dailySeoLimit: resolveDailySeoLimit(updated),
+    dailySeoLimit,
+    tenantsSynced,
     serviceAvailableDays: updated.serviceAvailableDays ?? DEFAULT_SITE_CONFIG.serviceAvailableDays,
     serviceExpiresAt: updated.serviceExpiresAt,
     serviceDaysRemaining: daysRemainingFromExpiresAt(updated.serviceExpiresAt),

@@ -8,8 +8,6 @@ import {
   normalizeHostname,
 } from "@/lib/supabase/tenant-db";
 import { DEFAULT_BRAND_THEME } from "@/lib/tenant-theme";
-import { getSettings } from "@/lib/data";
-import { resolveDailySeoLimit } from "@/lib/seo-quota";
 import { fetchNaverAccountById } from "@/lib/supabase/naver-accounts";
 import { enqueueNaverSiteRegistration } from "@/lib/naver-register-worker";
 import { DEFAULT_SITE_CONFIG } from "@/lib/site-config-types";
@@ -102,9 +100,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const settings = await getSettings();
-    const dailySeoLimit = resolveDailySeoLimit(settings);
-
     /** 디자인 E만 고정 — 홈(home-re) 레이아웃·문구는 코드에 유지 */
     const contentData: TenantContentData = {
       siteDesign: "e",
@@ -130,7 +125,7 @@ export async function POST(req: NextRequest) {
       slack_webhook: slackWebhook || null,
       naver_account_id: account.id,
       naver_site_registered_at: null,
-      daily_seo_limit: dailySeoLimit,
+      daily_seo_limit: null,
       seo_quota_date: null,
       seo_quota_count: 0,
     });

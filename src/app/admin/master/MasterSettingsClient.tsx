@@ -168,7 +168,15 @@ export default function MasterSettingsClient() {
       });
       if (res.ok) {
         const data = await res.json();
-        setMessage("마스터 설정이 저장되었습니다.");
+        const synced =
+          typeof data.tenantsSynced === "number" && data.tenantsSynced > 0
+            ? ` 등록 사이트 ${data.tenantsSynced}곳 한도도 함께 반영했습니다.`
+            : "";
+        setMessage(
+          data.warning
+            ? `마스터 설정은 저장됐지만 사이트 한도 동기화에 실패했습니다: ${data.warning}`
+            : `마스터 설정이 저장되었습니다.${synced}`
+        );
         if (data.serviceExpiresAt) setServiceExpiresAt(data.serviceExpiresAt);
         if (data.dailySeoLimit !== undefined) {
           setSiteForm((prev) => ({ ...prev, dailySeoLimit: data.dailySeoLimit }));
@@ -327,6 +335,7 @@ export default function MasterSettingsClient() {
             <h2 className="font-bold text-dark mb-2">SEO 일일 최적화 한도</h2>
             <p className="text-xs text-gray-400 mb-4">
               당사 인프라에서 하루에 최적화할 수 있는 SEO 페이지 수입니다. (자정 KST 기준 초기화)
+              저장 시 등록된 모든 사이트 한도에도 함께 반영됩니다.
             </p>
             {siteField("하루 생성 가능 수량", "dailySeoLimit", {
               type: "number",
