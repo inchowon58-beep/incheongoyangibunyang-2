@@ -1,8 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import HeaderRe from "@/components/home-re/HeaderRe";
-import FooterRe from "@/components/home-re/FooterRe";
-import FixedContactBarRe from "@/components/home-re/FixedContactBarRe";
+import SiteChrome from "@/components/SiteChrome";
 import TenantThemeStyles from "@/components/TenantThemeStyles";
 import { SiteConfigProvider } from "@/components/SiteConfigProvider";
 import { getResolvedSiteConfig } from "@/utils/siteConfig";
@@ -100,10 +98,7 @@ export default async function RootLayout({
       </head>
       <body className="home-re-body antialiased min-h-screen flex flex-col">
         <SiteConfigProvider config={config} tenantUi={tenantUi}>
-          <HeaderRe />
-          <main className="flex-1 pb-20">{children}</main>
-          <FooterRe />
-          <FixedContactBarRe />
+          <SiteChrome>{children}</SiteChrome>
         </SiteConfigProvider>
       </body>
     </html>

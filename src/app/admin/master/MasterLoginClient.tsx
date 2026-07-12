@@ -42,7 +42,7 @@ export default function MasterLoginClient() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="마스터 비밀번호"
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:border-orange"
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white text-gray-900 caret-gray-900 placeholder:text-gray-400 outline-none focus:border-orange"
             required
             autoFocus
           />

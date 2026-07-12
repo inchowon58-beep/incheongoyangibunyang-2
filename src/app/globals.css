@@ -325,6 +325,27 @@ body.home-re-body {
   font-family: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
+/* 관리자·모달 입력창: 흰 배경에 어두운 글자 강제 */
+.admin-shell,
+.admin-shell input,
+.admin-shell textarea,
+.admin-shell select {
+  color: #111827;
+}
+
+.admin-shell input,
+.admin-shell textarea,
+.admin-shell select {
+  background-color: #fff;
+}
+
+body.home-re-body input:not([type="checkbox"]):not([type="radio"]),
+body.home-re-body textarea,
+body.home-re-body select {
+  color: #111827;
+  caret-color: #111827;
+}
+
 .re-brand,
 .re-heading,
 .re-header-brand,
