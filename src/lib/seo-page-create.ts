@@ -1,9 +1,7 @@
 import { DataStorageError, getPages, savePage, type SeoPage } from "./data";
 import { buildSeoSlug, ensureUniqueSeoSlug } from "./seo-slug";
 import { generateSeoContent } from "./gemini";
-import { getSiteConfig } from "./site-config";
 import { getImageIndexFromSeed } from "./site-images";
-import { resolveLocalPartnersForKeyword } from "./local-business";
 import { consumeSeoQuota, getSeoQuotaStatus, getSeoQuotaStatusForTenant } from "./seo-quota";
 import { enqueueCollectionRequest } from "./collection-queue";
 import { getServicePeriodStatus } from "./service-period";
@@ -14,14 +12,7 @@ import {
   getTenantPages,
   saveTenantPage,
 } from "@/lib/supabase/tenant-pages";
-import { guidePageUrl } from "@/lib/constants";
-
-function getNaverCredentials(site: Awaited<ReturnType<typeof getSiteConfig>>) {
-  return {
-    naverClientId: site.naverClientId || process.env.NAVER_CLIENT_ID || "",
-    naverClientSecret: site.naverClientSecret || process.env.NAVER_CLIENT_SECRET || "",
-  };
-}
+import { guidePageUrl } from "./constants";
 
 export class SeoCreateError extends Error {
   constructor(
@@ -124,9 +115,8 @@ export async function createSeoPageFromKeyword(
     existingPages.map((p) => p.slug)
   );
 
-  const { region, partners } = options?.skipLocalPartners
-    ? { region: extractRegionFromKeyword(trimmedKeyword), partners: [] as never[] }
-    : await resolveLocalPartnersForKeyword(trimmedKeyword, getNaverCredentials(site));
+  // 관련업체(네이버 플레이스) 수집 제거 — 지역명만 키워드에서 추출
+  const region = extractRegionFromKeyword(trimmedKeyword);
 
   const page: SeoPage = {
     id: pageId,
@@ -137,7 +127,7 @@ export async function createSeoPageFromKeyword(
     description: generated.description,
     content: generated.content,
     faqs: generated.faqs,
-    localPartners: partners.length > 0 ? partners : undefined,
+    localPartners: undefined,
     imageIndex: getImageIndexFromSeed(slug, site),
     createdAt: now,
     updatedAt: now,

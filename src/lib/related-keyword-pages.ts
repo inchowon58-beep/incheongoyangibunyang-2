@@ -1,9 +1,8 @@
 import type { SeoPage } from "@/lib/data";
 import { guidePageUrl } from "@/lib/constants";
-import { extractRegionFromKeyword } from "@/lib/region-parse";
 import { resolvePagesContext } from "@/lib/pages-resolver";
-import { getNearbyRegionNames } from "@/lib/nearby-regions";
-import { normalizeCityKey } from "@/lib/sub-region-map";
+import { getImageIndexFromSeed, getImageUrl } from "@/lib/site-images";
+import type { SiteConfig } from "@/lib/site-config-types";
 
 function hashSeed(seed: string): number {
   let hash = 0;
@@ -25,77 +24,42 @@ function seededShuffle<T>(items: T[], seed: string): T[] {
   return arr;
 }
 
-function pageRegion(page: SeoPage): string | null {
-  return extractRegionFromKeyword(page.keyword);
-}
-
-function isNeighborRegion(a: string | null, b: string | null, seed: string): boolean {
-  if (!a || !b) return false;
-  if (normalizeCityKey(a) === normalizeCityKey(b)) return true;
-  const neighbors = getNearbyRegionNames(a, seed, 12);
-  const bKey = normalizeCityKey(b);
-  return neighbors.some((n) => normalizeCityKey(n) === bKey);
-}
-
 export interface RelatedKeywordPageLink {
   keyword: string;
   href: string;
   slug: string;
+  imageUrl?: string;
 }
 
+/**
+ * 발행된 SEO 페이지 중 현재 페이지를 제외하고 시드 기반 랜덤 최대 limit개.
+ */
 export async function getRelatedKeywordPageLinks(
   currentSlug: string,
   currentKeyword: string,
-  limit = 30
+  limit = 30,
+  config?: SiteConfig
 ): Promise<RelatedKeywordPageLink[]> {
   const { pages } = await resolvePagesContext();
   const candidates = pages.filter((p) => p.slug !== currentSlug);
   if (candidates.length === 0) return [];
 
-  const currentRegion = extractRegionFromKeyword(currentKeyword);
-  const sameCity: SeoPage[] = [];
-  const neighbors: SeoPage[] = [];
-  const others: SeoPage[] = [];
+  const shuffled = seededShuffle(
+    candidates,
+    `${currentSlug}:${currentKeyword}:related-random`
+  );
 
-  for (const page of candidates) {
-    const region = pageRegion(page);
-    if (currentRegion && normalizeCityKey(region || "") === normalizeCityKey(currentRegion)) {
-      sameCity.push(page);
-    } else if (isNeighborRegion(currentRegion, region, currentSlug)) {
-      neighbors.push(page);
-    } else {
-      others.push(page);
-    }
-  }
-
-  const ordered = [
-    ...seededShuffle(sameCity, `${currentSlug}:city`),
-    ...seededShuffle(neighbors, `${currentSlug}:near`),
-    ...seededShuffle(others, `${currentSlug}:all`),
-  ];
-
-  const unique: SeoPage[] = [];
-  const seen = new Set<string>();
-  for (const page of ordered) {
-    const key = page.slug;
-    if (seen.has(key)) continue;
-    seen.add(key);
-    unique.push(page);
-    if (unique.length >= limit) break;
-  }
-
-  if (unique.length < limit) {
-    for (const page of seededShuffle(candidates, `${currentSlug}:fill`)) {
-      if (seen.has(page.slug)) continue;
-      seen.add(page.slug);
-      unique.push(page);
-      if (unique.length >= limit) break;
-    }
-  }
-
-  return unique.map((page) => ({
-    keyword: page.keyword,
-    href: guidePageUrl(page.slug),
-    slug: page.slug,
-  }));
+  return shuffled.slice(0, limit).map((page: SeoPage) => {
+    const imageIndex =
+      page.imageIndex ||
+      (config
+        ? getImageIndexFromSeed(page.slug || page.keyword, config)
+        : 1);
+    return {
+      keyword: page.keyword,
+      href: guidePageUrl(page.slug),
+      slug: page.slug,
+      imageUrl: config ? getImageUrl(imageIndex, config) : undefined,
+    };
+  });
 }

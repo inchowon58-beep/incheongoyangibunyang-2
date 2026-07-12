@@ -2,53 +2,63 @@ export interface SeoReview {
   name: string;
   area: string;
   text: string;
+  imageIndex?: number;
 }
 
 const REVIEW_POOL: SeoReview[] = [
   {
-    name: "김○○",
-    area: "서귀포시 동홍동",
-    text: "매물 설명부터 계약 조건까지 차근차근 알려주셔서 안심하고 진행했습니다. 수수료도 미리 명확하게 안내해 주셨어요.",
+    name: "김서연",
+    area: "서울 · Gangnam",
+    imageIndex: 3,
+    text: "상담부터 케어 안내까지 섬세했어요. 화이트 코트가 사진보다 더 포근하고, 아이와 금방 친해졌습니다.",
   },
   {
-    name: "이○○",
-    area: "서귀포시 중문",
-    text: "타 지역에서 이주 상담을 받았는데, 생활권·학교·주차까지 현실적으로 짚어 주셔서 결정이 빨랐습니다.",
+    name: "이준호",
+    area: "부산 · Haeundae",
+    imageIndex: 7,
+    text: "고가 품종이라 고민이 많았는데, 성격·털관리까지 솔직히 알려주셔서 안심하고 모셨습니다.",
   },
   {
-    name: "박○○",
-    area: "제주시 → 서귀포",
-    text: "급한 일정에도 권리관계 확인을 꼼꼼히 해 주셨습니다. 잔금 날까지 연락이 잘 되어 좋았어요.",
+    name: "박민지",
+    area: "경기 · Bundang",
+    imageIndex: 11,
+    text: "왕실견답다 싶을 만큼 우아한데 애교도 많아요. 분양 후에도 궁금한 점을 편하게 물어볼 수 있어 좋았습니다.",
   },
   {
-    name: "최○○",
-    area: "서귀포시 대정",
-    text: "처음 부동산 거래라 걱정이 많았는데, 용어부터 절차까지 쉽게 설명해 주셔서 부담이 줄었습니다.",
+    name: "최현우",
+    area: "대구 · Suseong",
+    imageIndex: 14,
+    text: "실내견으로 완벽합니다. 짖음이 적고 사람을 잘 따라요. 메종드꼬똥 추천으로 만난 인연이 특별합니다.",
   },
   {
-    name: "정○○",
-    area: "서귀포시 성산",
-    text: "시세만 밀어붙이지 않고, 제 상황에 맞는 선택지를 여러 개 비교해 주셨습니다. 신뢰가 갔습니다.",
+    name: "정유진",
+    area: "인천 · Songdo",
+    imageIndex: 18,
+    text: "코트 관리 주기와 미용 팁을 미리 알려주셔서 첫 반려견인데도 부담이 줄었어요.",
   },
   {
-    name: "한○○",
-    area: "서귀포시 남원",
-    text: "계약 후에도 전입·공과금 관련 질문에 친절히 답해 주셨어요. 한 번으로 끝나지 않는 느낌이었습니다.",
+    name: "한도윤",
+    area: "대전 · Yuseong",
+    imageIndex: 21,
+    text: "작은 체구인데 존재감이 커요. 품종 지식을 자세히 설명해 주신 점이 신뢰로 이어졌습니다.",
   },
   {
-    name: "윤○○",
-    area: "서울 → 제주",
-    text: "원격으로도 사진·서류·일정을 체계적으로 공유해 주셔서 멀리서도 불안하지 않았습니다.",
+    name: "오수빈",
+    area: "광주 · Bonchon",
+    imageIndex: 24,
+    text: "혼자 있는 시간에도 비교적 안정적이에요. 저희 라이프스타일과 딱 맞는 아이였습니다.",
   },
   {
-    name: "오○○",
-    area: "서귀포시 강정",
-    text: "우수공인중개사 선정 소식을 보고 방문했는데, 상담 태도가 그만큼 차분하고 확실했습니다.",
+    name: "윤재혁",
+    area: "제주 · Jeju",
+    imageIndex: 27,
+    text: "고급스러운 외모와 부드러운 성격, 둘 다 만족합니다. 상담이 차분하고 품격 있었어요.",
   },
   {
-    name: "송○○",
-    area: "서귀포시 동홍",
-    text: "위치도 찾기 쉽고, 방문 상담 예약부터 안내가 친절했습니다. 주변에 추천하고 싶은 사무소입니다.",
+    name: "신예린",
+    area: "서울 · Seongsu",
+    imageIndex: 30,
+    text: "역사부터 털빠짐까지 안내가 체계적이라, 분양 후에도 관리가 수월했습니다.",
   },
 ];
 
@@ -61,7 +71,7 @@ function hashSeed(seed: string): number {
   return Math.abs(hash) || 1;
 }
 
-/** 키워드마다 다른 리뷰 3개 — 본문 글자수(1500~2000) 보완용 */
+/** 키워드마다 다른 리뷰 3개 — 본문 글자수(~1500) 보완 + 사진 */
 export function getSeoReviewsForKeyword(keyword: string, count = 3): SeoReview[] {
   const seed = hashSeed(keyword.trim() || "review");
   const pool = [...REVIEW_POOL];
@@ -72,6 +82,7 @@ export function getSeoReviewsForKeyword(keyword: string, count = 3): SeoReview[]
 
   return pool.slice(0, count).map((r, idx) => ({
     ...r,
+    imageIndex: ((((r.imageIndex ?? 1) + seed + idx * 3 - 1) % 30) + 1),
     text:
       idx === 0
         ? `${keyword} 상담을 받으며 ${r.text}`

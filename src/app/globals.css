@@ -507,6 +507,37 @@ body.maison-root .animate-maison-rise-delay-2 {
   animation: maison-rise 0.9s ease 0.3s both;
 }
 
+/* Guide SEO 상세 — 메인과 동일한 Maison 톤 */
+body.maison-root .maison-guide .maison-prose h2 {
+  font-family: "Cormorant Garamond", "Paperlogy", Georgia, serif;
+  font-size: 1.45rem;
+  font-weight: 500;
+  color: var(--maison-ink);
+  margin: 2.25rem 0 1rem;
+  letter-spacing: -0.01em;
+}
+
+body.maison-root .maison-guide .maison-prose h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--maison-ink);
+  margin: 1.5rem 0 0.75rem;
+}
+
+body.maison-root .maison-guide .maison-prose p {
+  color: var(--maison-muted);
+  line-height: 1.85;
+}
+
+body.maison-root .maison-guide .maison-prose .seo-content-image__media {
+  border-radius: 1.5rem;
+  box-shadow: 0 12px 36px rgba(44, 38, 34, 0.08);
+}
+
+body.maison-root .maison-guide details summary::-webkit-details-marker {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   body.maison-root .animate-maison-fade,
   body.maison-root .animate-maison-rise,

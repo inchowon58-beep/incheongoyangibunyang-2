@@ -32,8 +32,8 @@ export interface GeneratedSeoContent {
   faqs: SeoFaq[];
 }
 
-/** 본문 순수 텍스트 목표 */
-const MIN_BODY_CHARS = 1000;
+/** 본문 순수 텍스트 목표 — 약 1500자 */
+const MIN_BODY_CHARS = 1400;
 const MAX_BODY_CHARS = 1600;
 
 const GEMINI_MODELS = [
@@ -47,12 +47,14 @@ const CONTENT_RULES = `
 - 키워드는 **전달받은 문자열 그대로** 사용 (글자 사이 띄어쓰기·줄바꿈으로 쪼개지 말 것)
 - 키워드를 자연스럽게 본문 전체에 5~7회 포함
 - 업체명·전화번호·주소는 반드시 {{brandName}}, {{phone}}, {{address}} 등 토큰으로만 표기 (직접 입력 금지)
-- 제주·서귀포 공인중개·부동산 중개·매매·전세·월세·상담 관점으로 작성
-- 허위·과장·확정 수익 보장 표현 금지
-- 신뢰감 있는 전문가 톤
+- 꼬똥드툴레아(Coton de Tuléar) 품종 소개·분양·케어·성격·털관리 관점으로 작성
+- 메종드꼬똥(Maison de Coton)의 프리미엄·럭셔리·포근한 톤 유지. 영문 소제목·핵심 표현을 자연스럽게 함께 사용
+- 허위·과장·확정 수익 보장·과장 건강 효능 표현 금지
+- 신뢰감 있는 프리미엄 상담 톤
 - h2, h3, p, ul 태그만 사용 (img 태그 직접 사용 금지)
-- 본문 순수 텍스트(HTML 태그 제외) **반드시 ${MIN_BODY_CHARS}~${MAX_BODY_CHARS}자**
+- 본문 순수 텍스트(HTML 태그 제외) **반드시 ${MIN_BODY_CHARS}~${MAX_BODY_CHARS}자** (목표 약 1500자)
 - h2 소제목 **정확히 4개**. 각 소제목마다 p 문단 2개 이상 작성 (한 문단만 쓰지 말 것)
+- h2는 한국어 + 짧은 영문 병기 권장 (예: 품종의 역사 Heritage)
 - 이미지는 시스템에서 본문에 자동 삽입되므로 img·플레이스홀더 사용 금지
 - 다른 SEO 페이지와 문장·사례·섹션 제목·구성이 겹치지 않게 작성 (매번 새로 쓸 것)
 - 자주 묻는 질문(FAQ) **정확히 2개**: 키워드와 관련된 실질적 질문·답변 (답변 2문장 내외, 토큰 사용)
@@ -61,23 +63,23 @@ const CONTENT_RULES = `
 `;
 
 const WRITING_ANGLES = [
-  "매수·매도 상담 절차와 체크포인트를 중심으로",
-  "전세·월세 계약 시 확인해야 할 권리관계를 중심으로",
-  "지역 생활권·교통·시세를 이해하는 관점으로",
-  "중개 수수료·일정·계약 단계를 투명하게 안내하는 관점으로",
-  "이주·원거리 상담·서류 확인을 중심으로",
-  "안전한 잔금·인도·사후 문의까지 동행하는 관점으로",
+  "꼬똥드툴레아 품종 역사와 왕실 유산을 중심으로",
+  "코트·털빠짐·미용 케어를 중심으로",
+  "크기·성격·실내 반려 적합성을 중심으로",
+  "분양 전 체크포인트와 상담 절차를 중심으로",
+  "가정 환경 매칭과 사회화를 중심으로",
+  "프리미엄 분양 후 애프터케어를 중심으로",
 ];
 
 const TITLE_STYLE_HINTS = [
-  "중개 상담 가이드형",
-  "지역 생활권 안내형",
-  "계약 전 체크리스트형",
-  "매매·임대 비교형",
-  "권리관계 확인 강조형",
-  "실무 절차 안내형",
-  "초보 거래자 친절 안내형",
-  "지역 특화 인사이트형",
+  "품종 가이드형",
+  "케어 안내형",
+  "분양 전 체크리스트형",
+  "성격·기질 비교형",
+  "실내견 라이프스타일형",
+  "럭셔리 컴패니언 안내형",
+  "초보 반려인 친절 안내형",
+  "지역 특화 분양 인사이트형",
 ];
 
 function hashKeyword(keyword: string): number {
@@ -137,22 +139,22 @@ ${siteBrief.heroHeadline ? `- 히어로: ${siteBrief.heroHeadline}` : ""}
 `
     : "";
 
-  const prompt = `당신은 제주·서귀포 부동산 공인중개 SEO 전문 작가입니다. 네이버 검색 최적화를 위한 **키워드 문서형** 한국어 HTML을 작성하세요.
+  const prompt = `당신은 꼬똥드툴레아(Coton de Tuléar) 프리미엄 분양·품종 SEO 전문 작가입니다. 네이버 검색 최적화를 위한 **키워드 문서형** 한국어 HTML을 작성하세요. 영문 핵심어를 소제목·문장에 자연스럽게 섞어 럭셔리한 Maison de Coton 톤을 유지하세요.
 
-사무소 정보 (본문에 토큰 그대로 사용):
+브랜드 정보 (본문에 토큰 그대로 사용):
 - 상호: {{brandName}} ({{companyName}})
 - 대표: {{representative}}
 - 연락처: {{phone}}
 - 주소: {{address}}
 ${tenantContextBlock}
 키워드: "${corePhrase}"
-※ 키워드는 띄어쓰기 없이 위 문자열 그대로만 사용 (잘못된 예: "서귀포부동 산")
+※ 키워드는 띄어쓰기 없이 위 문자열 그대로만 사용
 ${region ? `지역 맥락: ${region}` : ""}
 제목 스타일: ${titleStyleHint}
 작성 관점: ${angle}
 고유 시드: ${uniqueSeed}
 
-필수: content 순수 텍스트(태그 제외)가 ${MIN_BODY_CHARS}자 이상 ${MAX_BODY_CHARS}자 이하가 되도록 충분히 길게 쓰세요. 짧으면 실패입니다.
+필수: content 순수 텍스트(태그 제외)가 ${MIN_BODY_CHARS}자 이상 ${MAX_BODY_CHARS}자 이하가 되도록 쓰세요. 목표 약 1500자. 짧으면 실패입니다.
 ${CONTENT_RULES}
 
 JSON만 응답:
@@ -261,31 +263,31 @@ export function buildDefaultFaqs(keyword: string, site: SiteConfig): SeoFaq[] {
     [
       {
         question: `${keyword} 상담은 어떻게 진행되나요?`,
-        answer: `전화 {{phone}} 또는 방문 상담으로 목적(매매·전세·월세)을 확인한 뒤 일정과 확인 서류를 안내합니다. {{brandName}}에서 ${regionNote}관련 조건을 함께 정리해 드립니다.`,
+        answer: `카톡 또는 전화 {{phone}}로 희망 일정·가정 환경을 알려주시면 {{brandName}}에서 ${regionNote}꼬똥드툴레아 기질·케어 포인트를 안내합니다.`,
       },
       {
-        question: `${keyword} 계약 전 꼭 확인할 점은?`,
-        answer: `권리관계·등기·잔금 일정·특약 사항을 미리 점검하는 것이 중요합니다. {{brandName}}은 계약 전 체크리스트를 바탕으로 안내하며, 궁금한 점은 {{phone}}로 문의하세요.`,
-      },
-    ],
-    [
-      {
-        question: `${regionNote}${keyword} 중개 수수료는 어떻게 되나요?`,
-        answer: `법정 요율 범위에서 거래 유형·금액에 따라 안내합니다. {{brandName}}은 상담 단계에서 예상 비용을 투명하게 설명합니다.`,
-      },
-      {
-        question: `멀리 살아도 상담·계약이 가능한가요?`,
-        answer: `가능합니다. 서류·일정·현장 확인을 단계별로 공유하며 진행합니다. {{phone}}로 상황을 알려주시면 {{brandName}}이 동선에 맞춰 안내합니다.`,
+        question: `${keyword} 분양 전 꼭 확인할 점은?`,
+        answer: `털관리 주기, 실내 활동량, 사회화 계획을 미리 점검하는 것이 중요합니다. {{brandName}}은 분양 전 체크리스트로 안내하며, 문의는 {{phone}}로 가능합니다.`,
       },
     ],
     [
       {
-        question: `${keyword} 관련 매물·조건은 어떻게 좁히나요?`,
-        answer: `예산·입지·생활권·거래 형태를 먼저 정리한 뒤 후보를 비교합니다. {{brandName}} 상담에서 우선순위를 함께 정해 드립니다.`,
+        question: `${regionNote}${keyword} 털빠짐은 심한 편인가요?`,
+        answer: `꼬똥드툴레아는 상대적으로 털이 덜 떨어지는 편이나, 엉김 방지를 위한 정기 빗질·미용이 필요합니다. {{brandName}}에서 케어 루틴을 함께 안내합니다.`,
       },
       {
-        question: `방문 상담은 예약이 필요한가요?`,
-        answer: `원활한 안내를 위해 사전 연락을 권장합니다. {{address}} 인근이며, {{phone}}로 일정을 잡아 주세요.`,
+        question: `첫 반려견인데도 분양이 가능한가요?`,
+        answer: `가능합니다. 성격·크기·일상 케어를 차근히 설명해 드립니다. {{phone}}로 상황을 알려주시면 {{brandName}}이 맞는 아이를 상담합니다.`,
+      },
+    ],
+    [
+      {
+        question: `${keyword} 관련 개체는 어떻게 매칭하나요?`,
+        answer: `가정 환경·생활 패턴·선호 기질을 먼저 정리한 뒤 후보를 비교합니다. {{brandName}} 상담에서 우선순위를 함께 정해 드립니다.`,
+      },
+      {
+        question: `방문·화상 상담은 예약이 필요한가요?`,
+        answer: `원활한 안내를 위해 사전 연락을 권장합니다. {{phone}} 또는 카톡으로 일정을 잡아 주세요.`,
       },
     ],
   ];
@@ -295,58 +297,58 @@ export function buildDefaultFaqs(keyword: string, site: SiteConfig): SeoFaq[] {
 
 type FallbackBuilder = (keyword: string, region: string | null) => string;
 
-/** API 키 없을 때만 사용 — 본문 1000자 이상 분량 */
+/** API 키 없을 때만 사용 — 본문 약 1500자 분량 */
 const FALLBACK_VARIANTS: FallbackBuilder[] = [
   (keyword, region) => {
     const core = buildSeoCorePhrase(keyword);
-    const area = region || "제주";
+    const area = region || "전국";
     return `
-<h2>${core} 기본 이해</h2>
-<p>{{brandName}}은 ${area}를 중심으로 ${core} 상담을 진행합니다. 매매·전세·월세 등 목적에 따라 확인해야 할 서류와 일정이 달라지므로, 첫 상담에서 조건을 정리하는 것이 중요합니다. 키워드로 찾는 정보는 시세뿐 아니라 생활권·권리관계까지 함께 보는 편이 안전합니다.</p>
-<p>대표 {{representative}}와 함께 계약 전 체크리스트를 바탕으로 안내하며, 문의는 {{phone}}로 가능합니다. 과장된 확정 표현 없이 확인 가능한 사실 중심으로 설명합니다.</p>
+<h2>${core} 기본 이해 Heritage</h2>
+<p>{{brandName}}은 ${area}를 비롯한 문의에 대해 ${core} 상담을 진행합니다. 꼬똥드툴레아(Coton de Tuléar)는 솜처럼 부드러운 코트와 사람을 향한 온화한 성격으로 프리미엄 컴패니언으로 사랑받아 온 품종입니다. 키워드로 찾는 정보는 외모뿐 아니라 기질·케어·가정 적합성까지 함께 보는 편이 안전합니다.</p>
+<p>{{brandName}}은 과장된 확정 표현 없이 확인 가능한 품종 특성과 분양 전 체크리스트를 중심으로 안내하며, 문의는 {{phone}}로 가능합니다. Maison de Coton의 철학은 품격을 지키며 가정에 맞는 인연을 잇는 것입니다.</p>
 
-<h2>${keyword} 상담 전 준비</h2>
-<p>${keyword} 상담을 효율적으로 받으려면 예산 범위, 희망 입지, 입주·잔금 가능 시기를 미리 메모해 두는 것이 좋습니다. 원거리 이주라면 서류 전달 방식과 방문 일정까지 함께 조율합니다.</p>
+<h2>${keyword} 상담 전 준비 Care Checklist</h2>
+<p>${keyword} 상담을 효율적으로 받으려면 가정 환경, 하루 돌봄 가능 시간, 미용·빗질 주기를 미리 메모해 두는 것이 좋습니다. 첫 반려견이라면 사회화와 기본 예절 훈련 계획까지 함께 조율합니다.</p>
 <ul>
-<li>거래 목적과 예산 범위</li>
-<li>희망 생활권·교통·편의시설</li>
-<li>잔금·입주 가능 시기</li>
-<li>확인이 필요한 서류·특약</li>
+<li>가정 구성원과 생활 패턴</li>
+<li>실내 활동·산책 가능 여부</li>
+<li>코트 관리·미용 주기</li>
+<li>분양 후 궁금한 케어 포인트</li>
 </ul>
-<p>준비가 정리되면 후보 비교가 빨라지고, 불필요한 재방문을 줄일 수 있습니다. {{brandName}}은 우선순위를 함께 정해 드립니다.</p>
+<p>준비가 정리되면 기질 매칭이 빨라지고, 불필요한 재상담을 줄일 수 있습니다. {{brandName}}은 우선순위를 함께 정해 드립니다.</p>
 
-<h2>${area} 생활권과 거래 포인트</h2>
-<p>${area}는 생활권마다 분위기와 수요가 다릅니다. ${keyword}를 볼 때는 단순 가격표보다 일상 동선, 주차·관리, 주변 상권 변화를 함께 점검하는 것이 좋습니다.</p>
-<p>{{brandName}}은 현장 감각을 바탕으로 후보를 비교·정리합니다. 사무소는 {{address}}에 있으며, 방문 전 연락을 권장합니다.</p>
+<h2>${area} 라이프스타일과 매칭 Lifestyle</h2>
+<p>${area} 생활권에서도 꼬똥드툴레아는 비교적 조용한 실내견으로 잘 어울립니다. ${keyword}를 볼 때는 단순 외모보다 애착 성향, 분리불안 대비, 정기 미용 부담을 함께 점검하는 것이 좋습니다.</p>
+<p>{{brandName}}은 품종 지식을 바탕으로 후보를 비교·정리합니다. 연락은 {{phone}}이며, 카톡 상담도 가능합니다.</p>
 
-<h2>${keyword} 다음 단계</h2>
-<p>관심 조건이 정리되면 {{phone}}로 연락해 주세요. 상담부터 계약 동행까지 {{companyName}} {{brandName}}이 단계별로 안내합니다. ${keyword} 관련 궁금한 점은 언제든 문의해 주시면 됩니다.</p>
-<p>중개 수수료·일정·특약 사항도 상담 단계에서 투명하게 설명드리며, 잔금·인도까지 필요한 확인 항목을 함께 챙깁니다.</p>`.trim();
+<h2>${keyword} 다음 단계 Private Inquiry</h2>
+<p>관심 조건이 정리되면 {{phone}}로 연락해 주세요. 상담부터 분양 안내까지 {{companyName}} {{brandName}}이 단계별로 도와드립니다. ${keyword} 관련 궁금한 점은 언제든 문의해 주시면 됩니다.</p>
+<p>케어 루틴·성격 매칭·입양 후 조언까지 상담 단계에서 투명하게 설명드리며, 가정에 맞는 Soft Companion을 신중히 소개합니다.</p>`.trim();
   },
   (keyword, region) => {
-    const area = region || "서귀포";
+    const area = region || "국내";
     return `
-<h2>${keyword} 검색자가 자주 묻는 핵심</h2>
-<p>${keyword}로 찾는 분들은 보통 가격·입지·계약 안정성을 동시에 확인하려 합니다. {{brandName}}은 목적에 맞게 정보를 나누어 설명하고, 확인이 필요한 항목을 순서대로 정리합니다.</p>
-<p>과장된 확정 표현 없이 사실과 절차 중심으로 안내합니다. 문의는 {{phone}}입니다. 첫 상담에서 예산과 거래 형태만 명확해도 이후 진행이 훨씬 수월해집니다.</p>
+<h2>${keyword} 검색자가 자주 묻는 핵심 Guide</h2>
+<p>${keyword}로 찾는 분들은 보통 크기·털빠짐·성격·분양 절차를 동시에 확인하려 합니다. {{brandName}}은 목적에 맞게 정보를 나누어 설명하고, 확인이 필요한 항목을 순서대로 정리합니다.</p>
+<p>과장된 확정 표현 없이 품종 사실과 케어 절차 중심으로 안내합니다. 문의는 {{phone}}입니다. 첫 상담에서 생활 패턴만 명확해도 이후 매칭이 훨씬 수월해집니다.</p>
 
-<h2>계약 전 체크리스트</h2>
-<p>계약 전에 권리관계와 특약을 점검하지 않으면 잔금 단계에서 문제가 생길 수 있습니다. ${keyword} 거래라도 기본 체크는 동일하게 적용됩니다.</p>
+<h2>분양 전 체크리스트 Before Adoption</h2>
+<p>분양 전에 코트 관리와 사회화를 점검하지 않으면 입양 후 부담이 커질 수 있습니다. ${keyword}라도 기본 체크는 동일하게 적용됩니다.</p>
 <ul>
-<li>등기·권리관계 확인</li>
-<li>중개 수수료·일정 안내</li>
-<li>특약·인도 조건 정리</li>
-<li>잔금 당일 점검 항목</li>
+<li>털관리·미용 주기 이해</li>
+<li>실내 활동량과 분리 시간</li>
+<li>가족·아이와의 사회화</li>
+<li>분양 후 문의 채널 확인</li>
 </ul>
-<p>체크리스트를 기준으로 진행하면 불필요한 재방문을 줄일 수 있습니다. {{brandName}}이 단계별로 안내해 드립니다.</p>
+<p>체크리스트를 기준으로 진행하면 적응이 안정적입니다. {{brandName}}이 단계별로 안내해 드립니다.</p>
 
-<h2>${area}에서의 실무 진행</h2>
-<p>${area} 거래는 일정 조율과 현장 확인이 중요합니다. 원거리에 계시더라도 사진·서류·일정을 공유하며 진행할 수 있습니다. ${keyword} 조건을 바탕으로 후보를 좁힌 뒤 방문 일정을 잡는 방식을 권합니다.</p>
-<p>사무소 주소는 {{address}}이며, 방문 전 연락을 권장합니다. 대표 {{representative}}가 상담을 도와드립니다.</p>
+<h2>${area}에서의 상담 진행 Consultation</h2>
+<p>${area}에서도 전화·카톡으로 일정 조율이 가능합니다. 원거리에 계시더라도 사진·기질 설명·케어 가이드를 공유하며 진행할 수 있습니다. ${keyword} 조건을 바탕으로 후보를 좁힌 뒤 상담 일정을 잡는 방식을 권합니다.</p>
+<p>{{brandName}} Maison de Coton은 프리미엄 품종의 책임을 중시하며, 대표 {{representative}} 상담을 통해 맞춰 드립니다.</p>
 
-<h2>상담 연결</h2>
-<p>${keyword} 관련 궁금한 점이 있으면 {{phone}}로 문의해 주세요. {{brandName}}이 다음 단계(상담·서류·계약)를 함께 정리합니다.</p>
-<p>생활권 비교, 수수료 안내, 잔금 일정까지 한 번에 물어보셔도 됩니다. 목적에 맞는 선택지를 투명하게 안내하겠습니다.</p>`.trim();
+<h2>상담 연결 Contact</h2>
+<p>${keyword} 관련 궁금한 점이 있으면 {{phone}}로 문의해 주세요. {{brandName}}이 다음 단계(상담·매칭·애프터케어)를 함께 정리합니다.</p>
+<p>크기, 성격, 털빠짐, 케어까지 한 번에 물어보셔도 됩니다. 목적에 맞는 선택지를 투명하게 안내하겠습니다.</p>`.trim();
   },
 ];
 
@@ -361,21 +363,21 @@ function generateFallbackContent(
   const titleVariants = [
     (k: string, r: string | null) => generateVariedSeoTitle(k, r),
     (k: string, r: string | null) =>
-      generateVariedSeoTitle(k, r, `${extractServicePhrase(k, r)} 중개 안내`),
+      generateVariedSeoTitle(k, r, `${extractServicePhrase(k, r)} 품종 가이드`),
     (k: string, r: string | null) =>
-      generateVariedSeoTitle(k, r, `${extractServicePhrase(k, r)} 상담 가이드`),
+      generateVariedSeoTitle(k, r, `${extractServicePhrase(k, r)} 케어 안내`),
     (k: string, r: string | null) =>
-      generateVariedSeoTitle(k, r, `${extractServicePhrase(k, r)} — 실무 체크`),
+      generateVariedSeoTitle(k, r, `${extractServicePhrase(k, r)} — Soft Guide`),
   ];
   const descVariants = [
     (k: string) =>
-      `${buildSeoCorePhrase(k)} 안내. {{brandName}}에서 투명한 중개 상담을 진행합니다.`,
+      `${buildSeoCorePhrase(k)} 안내. {{brandName}}에서 꼬똥드툴레아 프리미엄 상담을 진행합니다.`,
     (k: string, r: string | null) =>
-      `${r ? `${r} ` : ""}${extractServicePhrase(k, r)} 실무 가이드. {{brandName}} · {{phone}}.`,
+      `${r ? `${r} ` : ""}${extractServicePhrase(k, r)} 케어·분양 가이드. {{brandName}} · {{phone}}.`,
     (k: string) =>
-      `{{brandName}} ${buildSeoCorePhrase(k)} — 계약 전 체크와 상담. 전화 {{phone}}.`,
+      `{{brandName}} ${buildSeoCorePhrase(k)} — 품종·케어·상담. 전화 {{phone}}.`,
     (k: string) =>
-      `${buildSeoCorePhrase(k)} 관련 자주 묻는 내용 정리. {{brandName}} 공인중개 상담.`,
+      `${buildSeoCorePhrase(k)} 관련 자주 묻는 내용 정리. {{brandName}} Maison de Coton.`,
   ];
 
   const tIdx = hashKeyword(keyword + "t") % titleVariants.length;
