@@ -1,3 +1,5 @@
+import FooterAdminLinks from "@/components/FooterAdminLinks";
+
 const PLACE_URL =
   "https://map.naver.com/p/entry/place/1574598604?placePath=%2Fhome%3Fentry%3Dplt&searchType=place&lng=126.5721595&lat=33.2559783";
 
@@ -22,8 +24,12 @@ export default function FooterRe() {
           </p>
         </div>
       </div>
-      <div className="re-footer-copy">
-        © {new Date().getFullYear()} 양준모공인중개사사무소 태솔. All rights reserved.
+      <div className="re-footer-copy re-footer-copy-row">
+        <span>
+          © {new Date().getFullYear()} 양준모공인중개사사무소 태솔. All rights
+          reserved.
+        </span>
+        <FooterAdminLinks />
       </div>
     </footer>
   );
