@@ -37,9 +37,8 @@ const MIN_BODY_CHARS = 1000;
 const MAX_BODY_CHARS = 1600;
 
 const GEMINI_MODELS = [
-  "gemini-2.0-flash",
   "gemini-2.5-flash",
-  "gemini-1.5-flash",
+  "gemini-2.5-flash-lite",
 ] as const;
 
 const CONTENT_RULES = `
