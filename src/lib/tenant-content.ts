@@ -407,14 +407,17 @@ export function pickTenantContentPackage(
           ? `${seed}:design-d`
           : siteDesign === "e"
             ? `${seed}:design-e`
-            : seed;
+            : siteDesign === "m"
+              ? `${seed}:design-m`
+              : seed;
   const layoutSeed = hashString(designSeed);
   const rng = createRng(layoutSeed);
   const isDesignB = siteDesign === "b";
   const isDesignC = siteDesign === "c";
   const isDesignD = siteDesign === "d";
   const isDesignE = siteDesign === "e";
-  const isAltDesign = isDesignB || isDesignC || isDesignD || isDesignE;
+  const isDesignM = siteDesign === "m";
+  const isAltDesign = isDesignB || isDesignC || isDesignD || isDesignE || isDesignM;
   const maxImages = Math.max(4, imageCount);
   const region = extractRegion(keywords, siteName);
   const firstKeyword = keywords.split(/[,\n]/)[0]?.trim() || siteName;

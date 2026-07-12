@@ -99,10 +99,10 @@ export async function getResolvedSiteConfig(
 
   if (!isSupabaseConfigured() || !hostname) {
     const legacyUi = resolveTenantContentData(
-      { siteDesign: "e" },
-      "taesol-junmo",
+      { siteDesign: "m" },
+      "maison-de-coton",
       baseConfig.brandName,
-      "제주공인중개사,서귀포공인중개사,양준모공인중개사,태솔부동산",
+      "꼬똥드툴레아,메종드꼬똥,꼬똥드툴레아분양,Coton de Tulear",
       baseConfig.description,
       baseConfig.imageCount
     );
@@ -123,10 +123,10 @@ export async function getResolvedSiteConfig(
     const tenant = await fetchTenantByHostname(hostname);
     if (!tenant) {
       const legacyUi = resolveTenantContentData(
-        { siteDesign: "e" },
-        hostname || "taesol-junmo",
+        { siteDesign: "m" },
+        hostname || "maison-de-coton",
         baseConfig.brandName,
-        "제주공인중개사,서귀포공인중개사,양준모공인중개사,태솔부동산",
+        "꼬똥드툴레아,메종드꼬똥,꼬똥드툴레아분양,Coton de Tulear",
         baseConfig.description,
         baseConfig.imageCount
       );

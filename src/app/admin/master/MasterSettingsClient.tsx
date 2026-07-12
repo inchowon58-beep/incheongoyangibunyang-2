@@ -17,6 +17,7 @@ interface SiteForm {
   address: string;
   businessNumber: string;
   representative: string;
+  kakaoUrl: string;
   imageCdn: string;
   imageCount: number;
   supportBase: string;
@@ -39,6 +40,7 @@ const emptySiteForm: SiteForm = {
   address: "",
   businessNumber: "",
   representative: "",
+  kakaoUrl: "",
   imageCdn: "",
   imageCount: 20,
   supportBase: "",
@@ -129,6 +131,7 @@ export default function MasterSettingsClient() {
       address: settings.address || "",
       businessNumber: settings.businessNumber || "",
       representative: settings.representative || "",
+      kakaoUrl: settings.kakaoUrl || "",
       imageCdn: settings.imageCdn || "",
       imageCount: settings.imageCount || 20,
       supportBase: settings.supportBase || "",
@@ -393,6 +396,9 @@ export default function MasterSettingsClient() {
               {siteField("회사명", "companyName")}
               {siteField("대표", "representative")}
               {siteField("대표번호", "phone")}
+              {siteField("카카오톡 상담 URL", "kakaoUrl", {
+                placeholder: "https://open.kakao.com/o/xxxxx",
+              })}
               {siteField("이메일", "email", { type: "email" })}
               {siteField("사업자등록번호", "businessNumber")}
               {siteField("주소", "address")}
@@ -403,6 +409,10 @@ export default function MasterSettingsClient() {
               {siteField("추가 지원", "supportExtra")}
               {siteField("지원금 최대", "supportMax")}
             </div>
+            <p className="mt-3 text-xs text-gray-400">
+              카카오톡 상담 URL은 하단 플로팅 바의 「카톡문의」 버튼에 연결됩니다. 비워 두면 카톡
+              버튼이 숨겨집니다.
+            </p>
           </div>
 
           <div className="bg-white rounded-2xl shadow-sm p-6">

@@ -315,6 +315,207 @@ body.home-d-root .home-d-fixed-bar {
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.12);
 }
 
+/* ── Maison de Coton (home-maison) ── */
+body.maison-root {
+  --maison-pearl: #f7f3ef;
+  --maison-mist: #efe8e1;
+  --maison-ink: #2c2622;
+  --maison-muted: #7a7068;
+  --maison-gold: #b08d6a;
+  --maison-gold-soft: #d4b896;
+  --maison-line: rgba(44, 38, 34, 0.08);
+  --maison-card: rgba(255, 252, 249, 0.85);
+  background:
+    radial-gradient(900px 500px at 8% -5%, rgba(176, 141, 106, 0.12), transparent 55%),
+    radial-gradient(700px 420px at 100% 15%, rgba(122, 112, 104, 0.06), transparent 50%),
+    var(--maison-pearl);
+  color: var(--maison-ink);
+  font-family: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+body.maison-root .maison-display {
+  font-family: "Cormorant Garamond", "Paperlogy", Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+body.maison-root .maison-eyebrow {
+  font-size: 0.68rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--maison-gold);
+  font-weight: 500;
+}
+
+body.maison-root .maison-header {
+  background: color-mix(in srgb, var(--maison-pearl) 88%, transparent);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--maison-line);
+}
+
+body.maison-root .maison-hero-veil {
+  background: linear-gradient(
+    to top,
+    rgba(28, 22, 18, 0.72) 0%,
+    rgba(28, 22, 18, 0.35) 45%,
+    rgba(28, 22, 18, 0.2) 100%
+  );
+}
+
+body.maison-root .maison-section-mist {
+  background: color-mix(in srgb, var(--maison-mist) 70%, transparent);
+}
+
+body.maison-root .maison-soft-block {
+  background: var(--maison-card);
+  border: 1px solid var(--maison-line);
+  border-radius: 1.5rem;
+  box-shadow: 0 8px 32px rgba(44, 38, 34, 0.04);
+}
+
+body.maison-root .maison-media {
+  box-shadow: 0 16px 48px rgba(44, 38, 34, 0.08);
+}
+
+body.maison-root .maison-btn-soft,
+body.maison-root .maison-btn-light,
+body.maison-root .maison-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 1.5rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+}
+
+body.maison-root .maison-btn-soft {
+  background: var(--maison-ink);
+  color: #fff;
+}
+
+body.maison-root .maison-btn-soft:hover {
+  background: color-mix(in srgb, var(--maison-ink) 88%, var(--maison-gold));
+}
+
+body.maison-root .maison-btn-light {
+  background: #fff;
+  color: var(--maison-ink);
+}
+
+body.maison-root .maison-btn-light:hover {
+  background: var(--maison-pearl);
+  transform: translateY(-1px);
+}
+
+body.maison-root .maison-btn-ghost {
+  background: transparent;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+body.maison-root .maison-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+body.maison-root .maison-promo {
+  min-height: 28rem;
+}
+
+body.maison-root .maison-footer {
+  background: linear-gradient(165deg, #241f1b 0%, #1a1613 100%);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+body.maison-root .maison-fab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 1.15rem 0.55rem 0.55rem;
+  border-radius: 999px;
+  box-shadow: 0 10px 36px rgba(44, 38, 34, 0.18);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+body.maison-root .maison-fab:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 40px rgba(44, 38, 34, 0.22);
+}
+
+body.maison-root .maison-fab-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+body.maison-root .maison-fab-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  padding-right: 0.35rem;
+}
+
+body.maison-root .maison-fab-kakao {
+  background: #fee500;
+  color: #191600;
+}
+
+body.maison-root .maison-fab-kakao .maison-fab-icon {
+  background: rgba(0, 0, 0, 0.08);
+  color: #191600;
+}
+
+body.maison-root .maison-fab-phone {
+  background: var(--maison-ink);
+  color: #fff;
+}
+
+body.maison-root .maison-fab-phone .maison-fab-icon {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+@keyframes maison-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes maison-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+body.maison-root .animate-maison-fade {
+  animation: maison-fade 1s ease both;
+}
+
+body.maison-root .animate-maison-rise {
+  animation: maison-rise 0.9s ease both;
+}
+
+body.maison-root .animate-maison-rise-delay {
+  animation: maison-rise 0.9s ease 0.15s both;
+}
+
+body.maison-root .animate-maison-rise-delay-2 {
+  animation: maison-rise 0.9s ease 0.3s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body.maison-root .animate-maison-fade,
+  body.maison-root .animate-maison-rise,
+  body.maison-root .animate-maison-rise-delay,
+  body.maison-root .animate-maison-rise-delay-2 {
+    animation: none;
+  }
+}
+
 /* ── 제주 양준모공인중개사 태솔 (home-re) ── */
 body.home-re-body {
   background:

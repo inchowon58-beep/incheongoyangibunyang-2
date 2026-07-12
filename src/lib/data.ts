@@ -44,6 +44,7 @@ export interface Settings {
   businessNumber?: string;
   registrationNumber?: string;
   placeUrl?: string;
+  kakaoUrl?: string;
   representative?: string;
   imageCdn?: string;
   imageCount?: number;

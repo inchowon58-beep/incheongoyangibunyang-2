@@ -5,6 +5,7 @@ import HomePageB from "@/components/home-b/HomePageB";
 import HomePageC from "@/components/home-c/HomePageC";
 import HomePageD from "@/components/home-d/HomePageD";
 import HomePageRe from "@/components/home-re/HomePageRe";
+import HomePageMaison from "@/components/home-maison/HomePageMaison";
 import { parseSiteDesignId } from "@/lib/site-designs";
 import { getSiteConfig } from "@/lib/site-config";
 import { buildPageMetadata } from "@/lib/metadata";
@@ -12,7 +13,7 @@ import { getResolvedSiteConfig } from "@/utils/siteConfig";
 
 export async function generateMetadata(): Promise<Metadata> {
   const config = await getSiteConfig();
-  const pageTitle = `${config.brandName} | 2026 서귀포시 우수공인중개사`;
+  const pageTitle = `${config.companyName || config.brandName} | Maison de Coton`;
   const browserTitle = buildTitleWithSeoSuffix(pageTitle, config.brandName);
   const suffixKeywords = pickSeoSuffixKeywords(config.brandName, 3);
 
@@ -24,12 +25,11 @@ export async function generateMetadata(): Promise<Metadata> {
       ogPath: "/opengraph-image",
       keywords: [
         config.brandName,
-        "제주공인중개사",
-        "서귀포공인중개사",
-        "서귀포시 우수공인중개사",
-        "양준모공인중개사",
-        "태솔부동산",
-        "제주부동산",
+        "꼬똥드툴레아",
+        "메종드꼬똥",
+        "꼬똥드툴레아 분양",
+        "Coton de Tulear",
+        "Maison de Coton",
         ...suffixKeywords,
       ],
     }),
@@ -41,6 +41,9 @@ export default async function HomePage() {
   const { tenantUi } = await getResolvedSiteConfig();
   const siteDesign = parseSiteDesignId(tenantUi?.siteDesign);
 
+  if (siteDesign === "m") {
+    return <HomePageMaison />;
+  }
   if (siteDesign === "e") {
     return <HomePageRe />;
   }

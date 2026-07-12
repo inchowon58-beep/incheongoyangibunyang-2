@@ -25,11 +25,16 @@ export const SITE_DESIGN_OPTIONS = [
     label: "E 디자인",
     description: "부동산 전용 · 신뢰형 소개 · 수상·대표소개·후기 · 전화·플레이스 바",
   },
+  {
+    id: "m",
+    label: "M 디자인 · 메종드꼬똥",
+    description: "꼬똥드툴레아 럭셔리 · 소프트 라운드 · 품종소개·후기·카톡·전화",
+  },
 ] as const;
 
 export type SiteDesignId = (typeof SITE_DESIGN_OPTIONS)[number]["id"];
 
-export const DEFAULT_SITE_DESIGN: SiteDesignId = "e";
+export const DEFAULT_SITE_DESIGN: SiteDesignId = "m";
 
 const DESIGN_IDS = new Set<string>(SITE_DESIGN_OPTIONS.map((o) => o.id));
 
@@ -40,5 +45,5 @@ export function parseSiteDesignId(value: unknown): SiteDesignId {
 
 export function siteDesignLabel(id: SiteDesignId | string | null | undefined): string {
   const found = SITE_DESIGN_OPTIONS.find((o) => o.id === id);
-  return found?.label ?? "E 디자인";
+  return found?.label ?? "M 디자인 · 메종드꼬똥";
 }

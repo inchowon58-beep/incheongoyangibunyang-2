@@ -23,6 +23,7 @@ const SITE_FIELDS = [
   "address",
   "businessNumber",
   "representative",
+  "kakaoUrl",
   "imageCdn",
   "imageCount",
   "supportBase",

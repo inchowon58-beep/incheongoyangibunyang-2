@@ -15,7 +15,7 @@ export default function RegisterSiteClient() {
   const [naverVerification, setNaverVerification] = useState("");
   const [dailySeoLimit, setDailySeoLimit] = useState("");
   const [naverAccountId, setNaverAccountId] = useState("");
-  const [siteDesign, setSiteDesign] = useState<SiteDesignId>("e");
+  const [siteDesign, setSiteDesign] = useState<SiteDesignId>("m");
   const [naverAccounts, setNaverAccounts] = useState<NaverAccountSummary[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");

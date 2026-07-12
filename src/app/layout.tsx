@@ -6,6 +6,7 @@ import { SiteConfigProvider } from "@/components/SiteConfigProvider";
 import { getResolvedSiteConfig } from "@/utils/siteConfig";
 import { buildSiteMetadata } from "@/lib/metadata";
 import { NAVER_SITE_VERIFICATION } from "@/lib/constants";
+import { parseSiteDesignId } from "@/lib/site-designs";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { config, tenant } = await getResolvedSiteConfig();
@@ -23,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#0b1c33",
+  themeColor: "#2c2622",
 };
 
 export default async function RootLayout({
@@ -34,39 +35,39 @@ export default async function RootLayout({
   const { config, tenant, tenantUi, theme } = await getResolvedSiteConfig();
   const naverVerification =
     tenant?.naver_verification?.trim() || NAVER_SITE_VERIFICATION;
+  const siteDesign = parseSiteDesignId(tenantUi?.siteDesign);
+  const bodyClass =
+    siteDesign === "m"
+      ? "maison-root antialiased min-h-screen flex flex-col"
+      : "home-re-body antialiased min-h-screen flex flex-col";
 
   const businessJsonLd = {
     "@context": "https://schema.org",
-    "@type": "RealEstateAgent",
+    "@type": "PetStore",
     name: config.brandName,
     legalName: config.companyName,
     description: config.description,
     telephone: config.phone,
     url: config.url,
-    image: `${config.url.replace(/\/$/, "")}/images/ceo-yangjunmo.png`,
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: "동홍중앙로58-1, 1층",
-      addressLocality: "서귀포시",
-      addressRegion: "제주특별자치도",
-      addressCountry: "KR",
-    },
-    geo: {
-      "@type": "GeoCoordinates",
-      latitude: 33.2559783,
-      longitude: 126.5721595,
-    },
-    founder: {
-      "@type": "Person",
-      name: config.representative,
-    },
-    award: "2026 서귀포시 우수공인중개사",
-    taxID: config.businessNumber,
-    areaServed: {
-      "@type": "AdministrativeArea",
-      name: "제주특별자치도 서귀포시",
-    },
-    sameAs: [config.placeUrl].filter(Boolean),
+    ...(config.address
+      ? {
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: config.address,
+            addressCountry: "KR",
+          },
+        }
+      : {}),
+    ...(config.representative
+      ? {
+          founder: {
+            "@type": "Person",
+            name: config.representative,
+          },
+        }
+      : {}),
+    ...(config.businessNumber ? { taxID: config.businessNumber } : {}),
+    sameAs: [config.kakaoUrl, config.placeUrl].filter(Boolean),
   };
 
   return (
@@ -89,6 +90,12 @@ export default async function RootLayout({
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/gh/fonts-archive/Paperlogy/Paperlogy.css"
         />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap"
+          rel="stylesheet"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -96,7 +103,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body className="home-re-body antialiased min-h-screen flex flex-col">
+      <body className={bodyClass}>
         <SiteConfigProvider config={config} tenantUi={tenantUi}>
           <SiteChrome>{children}</SiteChrome>
         </SiteConfigProvider>

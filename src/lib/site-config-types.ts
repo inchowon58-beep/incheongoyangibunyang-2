@@ -15,6 +15,8 @@ export interface SiteConfig {
   registrationNumber: string;
   /** 네이버 플레이스 URL */
   placeUrl: string;
+  /** 카카오톡 상담 링크 (오픈채팅·채널 등) */
+  kakaoUrl: string;
   representative: string;
   imageCdn: string;
   imageCount: number;
@@ -34,22 +36,22 @@ export interface SiteConfig {
 }
 
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
-  brandName: "양준모공인중개사 태솔",
-  companyName: "양준모공인중개사사무소 태솔",
-  tagline: "2026 서귀포시 우수공인중개사 · 제주 부동산 신뢰 중개",
+  brandName: "메종드꼬똥",
+  companyName: "꼬똥드툴레아 메종드꼬똥",
+  tagline: "Maison de Coton · Premium Coton de Tuléar",
   description:
-    "제주도 서귀포시 양준모공인중개사 태솔은 2026 서귀포시 우수공인중개사로 선정된 공인중개사사무소입니다. 투명한 상담과 지역 밀착 중개로 제주 부동산 거래를 안전하게 도와드립니다.",
-  url: "https://junmo-kappa.vercel.app",
-  phone: "010-9049-4064",
+    "꼬똥드툴레아 메종드꼬똥은 왕실의 반려견으로 사랑받아 온 꼬똥드툴레아의 역사·성격·크기·털관리까지 소개하며, 품격 있는 분양을 안내하는 프리미엄 전문관입니다.",
+  url: "https://maisondecoton.vercel.app",
+  phone: "0505-464-1004",
   email: "",
-  address: "제주특별자치도 서귀포시 동홍중앙로58-1, 1층",
-  businessNumber: "665-11-02801",
-  registrationNumber: "제50130-2024-00012호",
-  placeUrl:
-    "https://map.naver.com/p/entry/place/1574598604?placePath=%2Fhome%3Fentry%3Dplt&searchType=place&lng=126.5721595&lat=33.2559783",
-  representative: "양준모",
-  imageCdn: "https://image.cattery.co.kr/jejuland",
-  imageCount: 78,
+  address: "",
+  businessNumber: "",
+  registrationNumber: "",
+  placeUrl: "",
+  kakaoUrl: "",
+  representative: "",
+  imageCdn: "https://image.cattery.co.kr/coton",
+  imageCount: 30,
   supportBase: "",
   supportExtra: "",
   supportMax: "",

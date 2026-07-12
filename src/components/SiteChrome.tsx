@@ -16,6 +16,9 @@ import FixedContactBarD from "@/components/home-d/FixedContactBarD";
 import HeaderRe from "@/components/home-re/HeaderRe";
 import FooterRe from "@/components/home-re/FooterRe";
 import FixedContactBarRe from "@/components/home-re/FixedContactBarRe";
+import HeaderMaison from "@/components/home-maison/HeaderMaison";
+import FooterMaison from "@/components/home-maison/FooterMaison";
+import FixedContactBarMaison from "@/components/home-maison/FixedContactBarMaison";
 import { useTenantUi } from "@/components/SiteConfigProvider";
 import { parseSiteDesignId } from "@/lib/site-designs";
 
@@ -30,6 +33,17 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
       <div className="admin-shell min-h-screen flex flex-col bg-gray-50 text-gray-900">
         <main className="flex-1">{children}</main>
       </div>
+    );
+  }
+
+  if (siteDesign === "m") {
+    return (
+      <>
+        <HeaderMaison />
+        <main className="flex-1">{children}</main>
+        <FooterMaison />
+        <FixedContactBarMaison />
+      </>
     );
   }
 
