@@ -21,7 +21,7 @@ const DOMAIN_RE = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])
  * 이미 Vercel에 배포된 사이트를 Supabase 등록 목록에만 편입.
  * - Vercel 도메인 재등록 없음
  * - pickTenantContentPackage 없음 → E 디자인(home-re) 유지
- * - 네이버 계정 + 슬랙만 연결
+ * - 네이버 계정 연결 (슬랙은 선택)
  */
 export async function POST(req: NextRequest) {
   if (!(await isAuthenticated()) || !(await isMasterAuthenticated())) {
@@ -72,9 +72,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (!slackWebhook || !slackWebhook.startsWith("https://hooks.slack.com/")) {
+  if (slackWebhook && !slackWebhook.startsWith("https://hooks.slack.com/")) {
     return NextResponse.json(
-      { error: "Slack Webhook URL을 입력해 주세요. (https://hooks.slack.com/...)" },
+      { error: "Slack Webhook URL 형식이 올바르지 않습니다. (https://hooks.slack.com/...)" },
       { status: 400 }
     );
   }
@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
       theme_color: pickThemeColor(subdomain),
       content_data: contentData,
       naver_verification: null,
-      slack_webhook: slackWebhook,
+      slack_webhook: slackWebhook || null,
       naver_account_id: account.id,
       naver_site_registered_at: null,
       daily_seo_limit: dailySeoLimit,

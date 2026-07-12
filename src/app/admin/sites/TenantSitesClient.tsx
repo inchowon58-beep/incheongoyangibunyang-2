@@ -282,7 +282,7 @@ export default function TenantSitesClient() {
               <h2 className="text-xl font-bold text-dark mb-1">기존 Vercel 사이트 편입</h2>
               <p className="text-sm text-gray-500 mb-5">
                 이미 배포된 사이트를 등록 목록에만 추가합니다. E 디자인·홈 화면은 그대로 두고,
-                네이버 계정·슬랙만 연결합니다. (Vercel 재배포·도메인 재등록 없음)
+                네이버 계정을 연결합니다. 슬랙은 선택 사항입니다. (Vercel 재배포·도메인 재등록 없음)
               </p>
               <form onSubmit={handleAdopt} className="space-y-4">
                 <div>
@@ -311,14 +311,13 @@ export default function TenantSitesClient() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Slack Webhook
+                    Slack Webhook <span className="text-gray-400 font-normal">(선택)</span>
                   </label>
                   <input
                     value={adoptSlack}
                     onChange={(e) => setAdoptSlack(e.target.value)}
                     placeholder="https://hooks.slack.com/services/..."
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-orange bg-white text-gray-900 text-sm"
-                    required
                   />
                 </div>
                 <div>
