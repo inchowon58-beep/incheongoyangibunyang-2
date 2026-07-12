@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const NAV = [
   { href: "#award", label: "수상" },
@@ -11,6 +13,8 @@ const NAV = [
 ];
 
 export default function HeaderRe() {
+  const pathname = usePathname() || "/";
+  const isHome = pathname === "/";
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -23,14 +27,17 @@ export default function HeaderRe() {
   return (
     <header className={`re-header ${scrolled ? "re-header-solid" : ""}`}>
       <div className="re-header-inner">
-        <a href="#top" className="re-header-brand">
+        <Link href="/" className="re-header-brand">
           양준모공인중개사 태솔
-        </a>
+        </Link>
         <nav className="re-header-nav" aria-label="주요 메뉴">
           {NAV.map((item) => (
-            <a key={item.href} href={item.href}>
+            <Link
+              key={item.href}
+              href={isHome ? item.href : `/${item.href}`}
+            >
               {item.label}
-            </a>
+            </Link>
           ))}
         </nav>
         <a href="tel:01090494064" className="re-header-call">
