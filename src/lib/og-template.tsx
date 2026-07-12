@@ -102,9 +102,16 @@ export function OgBrandedLayout({
   );
 }
 
-/** 윤슬 — 바닷가에 빛나는 빛 느낌 파비콘 */
+/** 메종드꼬똥 — 귀여운 꼬똥(강아지) 파비콘 */
 export function FaviconLayout({ size }: { size: number }): ReactNode {
-  const glow = size >= 48 ? 10 : 4;
+  const r = size >= 48 ? Math.round(size * 0.22) : Math.max(6, Math.round(size * 0.2));
+  const head = size * 0.52;
+  const earW = size * 0.28;
+  const earH = size * 0.34;
+  const eye = Math.max(2, size * 0.08);
+  const noseW = Math.max(3, size * 0.12);
+  const noseH = Math.max(2.5, size * 0.09);
+  const cheek = Math.max(3, size * 0.1);
 
   return (
     <div
@@ -116,43 +123,126 @@ export function FaviconLayout({ size }: { size: number }): ReactNode {
         justifyContent: "center",
         position: "relative",
         overflow: "hidden",
-        borderRadius: size >= 48 ? 18 : 6,
-        background: "linear-gradient(165deg, #0a2744 0%, #135a8a 42%, #1a8fb5 72%, #7ec8e3 100%)",
+        borderRadius: r,
+        background: "linear-gradient(160deg, #FFE8DC 0%, #FFF6F0 48%, #F5E6D3 100%)",
       }}
     >
+      {/* 왼쪽 귀 */}
       <div
         style={{
           position: "absolute",
-          width: size * 0.7,
-          height: size * 0.35,
-          bottom: size * 0.18,
-          borderRadius: "50%",
-          background: "rgba(255,255,255,0.18)",
-          filter: `blur(${glow}px)`,
+          width: earW,
+          height: earH,
+          left: size * 0.14,
+          top: size * 0.16,
+          borderRadius: `${earW}px ${earW}px ${earW * 0.45}px ${earW * 0.45}px`,
+          background: "linear-gradient(180deg, #FFFFFF 0%, #F7EFE6 100%)",
+          transform: "rotate(-18deg)",
         }}
       />
+      {/* 오른쪽 귀 */}
       <div
         style={{
           position: "absolute",
-          width: size * 0.28,
-          height: size * 0.28,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, #fff9e6 0%, #ffe08a 35%, rgba(255,200,80,0.15) 70%, transparent 100%)",
-          boxShadow: `0 0 ${glow * 2}px rgba(255, 230, 150, 0.85)`,
+          width: earW,
+          height: earH,
+          right: size * 0.14,
+          top: size * 0.16,
+          borderRadius: `${earW}px ${earW}px ${earW * 0.45}px ${earW * 0.45}px`,
+          background: "linear-gradient(180deg, #FFFFFF 0%, #F7EFE6 100%)",
+          transform: "rotate(18deg)",
         }}
       />
+      {/* 얼굴 */}
       <div
         style={{
           position: "absolute",
-          width: size * 0.08,
-          height: size * 0.08,
-          top: size * 0.22,
-          right: size * 0.22,
+          width: head,
+          height: head,
+          top: size * 0.28,
           borderRadius: "50%",
-          background: "#fff8dc",
-          opacity: 0.9,
+          background: "linear-gradient(165deg, #FFFFFF 0%, #FFF9F4 55%, #F3E7DB 100%)",
+          boxShadow: `0 ${Math.max(1, size * 0.03)}px ${Math.max(2, size * 0.08)}px rgba(176, 141, 106, 0.22)`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       />
+      {/* 볼터치 L */}
+      <div
+        style={{
+          position: "absolute",
+          width: cheek,
+          height: cheek,
+          left: size * 0.28,
+          top: size * 0.58,
+          borderRadius: "50%",
+          background: "#F8B8C0",
+          opacity: 0.55,
+        }}
+      />
+      {/* 볼터치 R */}
+      <div
+        style={{
+          position: "absolute",
+          width: cheek,
+          height: cheek,
+          right: size * 0.28,
+          top: size * 0.58,
+          borderRadius: "50%",
+          background: "#F8B8C0",
+          opacity: 0.55,
+        }}
+      />
+      {/* 눈 L */}
+      <div
+        style={{
+          position: "absolute",
+          width: eye,
+          height: eye * 1.15,
+          left: size * 0.38,
+          top: size * 0.48,
+          borderRadius: "50%",
+          background: "#3D322C",
+        }}
+      />
+      {/* 눈 R */}
+      <div
+        style={{
+          position: "absolute",
+          width: eye,
+          height: eye * 1.15,
+          right: size * 0.38,
+          top: size * 0.48,
+          borderRadius: "50%",
+          background: "#3D322C",
+        }}
+      />
+      {/* 코 */}
+      <div
+        style={{
+          position: "absolute",
+          width: noseW,
+          height: noseH,
+          top: size * 0.58,
+          borderRadius: "50%",
+          background: "#E8899A",
+        }}
+      />
+      {/* 하이라이트 (귀여움) */}
+      {size >= 48 ? (
+        <div
+          style={{
+            position: "absolute",
+            width: size * 0.12,
+            height: size * 0.08,
+            top: size * 0.34,
+            left: size * 0.4,
+            borderRadius: "50%",
+            background: "rgba(255,255,255,0.85)",
+          }}
+        />
+      ) : null}
     </div>
   );
 }

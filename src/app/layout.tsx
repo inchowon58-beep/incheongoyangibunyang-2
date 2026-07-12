@@ -24,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#2c2622",
+  themeColor: "#FFE8DC",
 };
 
 export default async function RootLayout({
