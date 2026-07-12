@@ -17,19 +17,17 @@ export default async function GalleryMaison() {
           <p className="mt-3 text-[var(--maison-muted)]">메종드꼬똥의 꼬똥드툴레아</p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-          {GALLERY_INDICES.map((idx, i) => (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 items-stretch">
+          {GALLERY_INDICES.map((idx) => (
             <div
               key={idx}
-              className={`maison-media relative overflow-hidden rounded-[1.5rem] sm:rounded-[1.75rem] ${
-                i % 5 === 0 ? "aspect-[4/5]" : "aspect-square"
-              }`}
+              className="maison-media relative aspect-[4/5] w-full overflow-hidden rounded-[1.5rem] sm:rounded-[1.75rem]"
             >
               <Image
                 src={getImageUrl(idx, site)}
                 alt={`꼬똥드툴레아 갤러리 ${idx}`}
                 fill
-                className="object-cover hover:scale-105 transition-transform duration-700 ease-out"
+                className="object-cover object-center hover:scale-105 transition-transform duration-700 ease-out"
                 sizes="(max-width: 768px) 50vw, 33vw"
               />
             </div>
