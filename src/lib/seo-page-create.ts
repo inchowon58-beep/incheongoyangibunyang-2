@@ -167,6 +167,9 @@ export async function createSeoPageFromKeyword(
     revalidatePath("/");
     revalidateTag("guide-pages", "max");
     revalidateTag(`guide:${slug}`, "max");
+    if (isTenant && tenant) {
+      revalidateTag(`guide:${tenant.id}:${slug}`, "max");
+    }
   } catch (error) {
     console.error("revalidate after SEO create failed:", error);
   }

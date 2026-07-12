@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import {
-  getCachedGuidePage,
   getCachedGuideSlugList,
-  getCachedLegacySiteConfig,
+  resolveCachedGuidePage,
 } from "@/lib/guide-cache";
 import { guidePageUrl } from "@/lib/constants";
 import { buildPageMetadata, getOgImageAbsoluteUrl } from "@/lib/metadata";
@@ -28,12 +27,14 @@ import { ensureLocalPartners } from "@/lib/seo-local-partners";
 import GuideReviewsSection from "@/components/GuideReviewsSection";
 import { getSeoReviewsForKeyword } from "@/lib/seo-reviews";
 import { jejuImageUrl, pickJejuImageIndexes } from "@/lib/jeju-images";
+import { getResolvedSiteConfig } from "@/utils/siteConfig";
 
 /**
  * SSR + Data Cache (ISR)
  * - 서버에서 글을 조립해 완성 HTML을 로봇에게 제공 (클라이언트 fetch 아님)
  * - 1시간 캐시로 수집 속도·안정성 향상
  * - 생성 직후 revalidateTag로 캐시 무효화
+ * - 테넌트 사이트는 Supabase tenant_seo_pages에서 조회
  */
 export const revalidate = 3600;
 export const dynamicParams = true;
@@ -46,7 +47,8 @@ const DEFAULT_GEO = { lat: 33.2559783, lng: 126.5721595 };
 
 export async function generateStaticParams() {
   try {
-    const slugs = await getCachedGuideSlugList();
+    // 빌드 시점에는 hostname이 없으므로 레거시 목록만. 테넌트는 dynamicParams로 런타임 조회.
+    const slugs = await getCachedGuideSlugList(null);
     return slugs.map((slug) => ({ slug }));
   } catch {
     return [];
@@ -55,9 +57,9 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const [{ page }, config] = await Promise.all([
-    getCachedGuidePage(slug),
-    getCachedLegacySiteConfig(),
+  const [{ page }, { config }] = await Promise.all([
+    resolveCachedGuidePage(slug),
+    getResolvedSiteConfig(),
   ]);
   if (!page) return { title: "페이지를 찾을 수 없습니다" };
 
@@ -100,9 +102,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function GuidePage({ params }: Props) {
   const { slug } = await params;
-  const [{ page }, config] = await Promise.all([
-    getCachedGuidePage(slug),
-    getCachedLegacySiteConfig(),
+  const [{ page }, { config, tenant }] = await Promise.all([
+    resolveCachedGuidePage(slug),
+    getResolvedSiteConfig(),
   ]);
   if (!page) notFound();
 
@@ -114,7 +116,8 @@ export default async function GuidePage({ params }: Props) {
 
   const { region: localRegion, partners: localPartners } = await ensureLocalPartners(
     page,
-    config
+    config,
+    tenant?.id
   );
   const currentRegion = extractRegionFromKeyword(exactKeyword) || localRegion;
   const [relatedKeywordLinks, nearbySubRegions] = await Promise.all([
