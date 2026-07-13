@@ -3,11 +3,12 @@ import type { CSSProperties, ReactNode } from "react";
 export const OG_SIZE = { width: 1200, height: 630 };
 
 export const OG_COLORS = {
-  dark: "#0b1c33",
-  orange: "#c9a227",
-  orangeLight: "#e0bc4a",
+  dark: "#2c2622",
+  orange: "#b08d6a",
+  orangeLight: "#d4b896",
   white: "#ffffff",
-  gray: "#9ca3af",
+  gray: "#a89f96",
+  pearl: "#f7f3ef",
 };
 
 interface OgBrandedProps {
@@ -30,8 +31,8 @@ export function OgBrandedLayout({
     flexDirection: "column",
     justifyContent: "space-between",
     padding: "56px 64px",
-    fontFamily: "sans-serif",
-    background: `linear-gradient(135deg, ${OG_COLORS.dark} 0%, #2d2d2d 45%, ${OG_COLORS.orange} 160%)`,
+    fontFamily: "Georgia, 'Times New Roman', serif",
+    background: `linear-gradient(155deg, #2c2622 0%, #3d3530 42%, #b08d6a 155%)`,
   };
 
   return (
@@ -41,24 +42,24 @@ export function OgBrandedLayout({
           style={{
             width: 72,
             height: 72,
-            borderRadius: 16,
-            background: OG_COLORS.orange,
+            borderRadius: 999,
+            background: "linear-gradient(160deg, #FFE8DC 0%, #F5E6D3 100%)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: OG_COLORS.white,
-            fontSize: 28,
-            fontWeight: 900,
+            color: OG_COLORS.dark,
+            fontSize: 22,
+            fontWeight: 700,
           }}
         >
-          태솔
+          메종
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <div style={{ color: OG_COLORS.white, fontSize: 36, fontWeight: 800 }}>
+          <div style={{ color: OG_COLORS.white, fontSize: 36, fontWeight: 700 }}>
             {brandName}
           </div>
-          <div style={{ color: OG_COLORS.gray, fontSize: 22 }}>
-            제주 · 서귀포 공인중개
+          <div style={{ color: OG_COLORS.orangeLight, fontSize: 20, letterSpacing: "0.12em" }}>
+            Maison de Coton
           </div>
         </div>
       </div>
@@ -68,12 +69,13 @@ export function OgBrandedLayout({
           <div
             style={{
               alignSelf: "flex-start",
-              background: OG_COLORS.orange,
-              color: OG_COLORS.white,
-              fontSize: 22,
-              fontWeight: 700,
+              background: "rgba(255,255,255,0.12)",
+              color: OG_COLORS.orangeLight,
+              fontSize: 20,
+              fontWeight: 600,
               padding: "10px 24px",
               borderRadius: 999,
+              border: "1px solid rgba(212,184,150,0.35)",
             }}
           >
             {badge}
@@ -82,8 +84,8 @@ export function OgBrandedLayout({
         <div
           style={{
             color: OG_COLORS.white,
-            fontSize: 52,
-            fontWeight: 800,
+            fontSize: 48,
+            fontWeight: 600,
             lineHeight: 1.25,
             letterSpacing: "-0.02em",
           }}
@@ -91,12 +93,12 @@ export function OgBrandedLayout({
           {title}
         </div>
         {subtitle && (
-          <div style={{ color: "#d1d5db", fontSize: 28, lineHeight: 1.4 }}>{subtitle}</div>
+          <div style={{ color: "#d9d2cb", fontSize: 26, lineHeight: 1.45 }}>{subtitle}</div>
         )}
       </div>
 
-      <div style={{ color: OG_COLORS.gray, fontSize: 20 }}>
-        제주 · 서귀포 공인중개
+      <div style={{ color: OG_COLORS.gray, fontSize: 20, letterSpacing: "0.08em" }}>
+        Coton de Tuléar · Premium Companion
       </div>
     </div>
   );
