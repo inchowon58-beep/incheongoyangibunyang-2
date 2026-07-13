@@ -244,6 +244,69 @@ export async function saveSettings(settings: Settings): Promise<void> {
   await writeJson("settings.json", settings);
 }
 
+/** 블로그 자동작성 설정·대기열 (사이트별) */
+export interface BlogWritingSiteRecord {
+  siteKey: string;
+  siteUrl: string;
+  brandName: string;
+  phone: string;
+  naverId: string;
+  /** 서버 저장용 — API 응답에서는 마스킹 */
+  naverPassword: string;
+  basePrompt: string;
+  writingStyle: "info" | "review";
+  dailyCount: number;
+  publishMode: "random" | "continuous";
+  enabled: boolean;
+  /** 아직 발행하지 않은 키워드 큐 (앞에서부터 소진) */
+  keywordQueue: string[];
+  /** 오늘(KST) 이미 발행(또는 VM에 배정)한 개수 */
+  publishedToday: number;
+  publishedDate: string;
+  updatedAt: string;
+}
+
+export type BlogJobStatus = "pending" | "claimed" | "completed" | "failed";
+
+export interface BlogWritingJob {
+  id: string;
+  siteKey: string;
+  siteUrl: string;
+  naverId: string;
+  keyword: string;
+  writingStyle: "info" | "review";
+  basePrompt: string;
+  phone: string;
+  brandName: string;
+  publishMode: "random" | "continuous";
+  /** continuous면 순서, random이면 권장 시각(ISO) */
+  scheduledAt: string | null;
+  status: BlogJobStatus;
+  createdAt: string;
+  claimedAt?: string;
+  completedAt?: string;
+  error?: string;
+  postUrl?: string;
+}
+
+export interface BlogWritingStore {
+  updatedAt: string;
+  sites: BlogWritingSiteRecord[];
+  jobs: BlogWritingJob[];
+}
+
+export async function getBlogWritingStore(): Promise<BlogWritingStore> {
+  return readJson<BlogWritingStore>("blog-writing.json", {
+    updatedAt: "",
+    sites: [],
+    jobs: [],
+  });
+}
+
+export async function saveBlogWritingStore(data: BlogWritingStore): Promise<void> {
+  await writeJson("blog-writing.json", data);
+}
+
 export interface RankingCheck {
   at: string;
   rank: number | null;

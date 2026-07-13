@@ -158,6 +158,9 @@ export default function InquiriesClient() {
             <Link href="/admin" className="text-orange hover:underline">
               ← 관리자
             </Link>
+            <Link href="/admin/blog-writing" className="text-orange font-medium hover:underline">
+              블로그작성
+            </Link>
           </div>
         </div>
 

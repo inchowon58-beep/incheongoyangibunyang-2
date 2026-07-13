@@ -485,6 +485,9 @@ export default function AdminClient() {
             <p className="text-sm text-gray-500">{brandName || "SEO 페이지 관리"}</p>
           </div>
           <div className="flex gap-3 text-sm">
+            <Link href="/admin/blog-writing" className="text-orange font-medium hover:underline">
+              블로그작성
+            </Link>
             <Link href="/admin/inquiries" className="text-orange font-medium hover:underline">
               견적 문의 DB
             </Link>
