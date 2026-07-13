@@ -73,5 +73,12 @@ export async function DELETE(req: NextRequest) {
     await removeCollectionJobsForPage(id);
   }
 
+  try {
+    const { removeRankingForPage } = await import("@/lib/seo-ranking");
+    await removeRankingForPage(id);
+  } catch {
+    /* ranking cleanup is best-effort */
+  }
+
   return NextResponse.json({ success: true });
 }

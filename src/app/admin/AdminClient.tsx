@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { guidePageUrl } from "@/lib/constants";
 import { MAX_BULK_KEYWORDS } from "@/lib/parse-keywords";
+import KeywordHealthPanel from "@/components/admin/KeywordHealthPanel";
 
 interface SeoPage {
   id: string;
@@ -859,6 +860,14 @@ export default function AdminClient() {
               </div>
             </div>
           )}
+        </div>
+
+        <div className="mb-6">
+          <KeywordHealthPanel
+            disabled={loading || generating || bulkEnqueueing}
+            onMessage={setMessage}
+            onRepostDone={() => void loadData()}
+          />
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm p-6">
