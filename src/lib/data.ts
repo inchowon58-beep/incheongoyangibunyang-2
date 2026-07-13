@@ -257,6 +257,10 @@ export interface BlogWritingSiteRecord {
   writingStyle: "info" | "review";
   dailyCount: number;
   publishMode: "random" | "continuous";
+  /** 발행 가능 시작 시 (0~23, KST) 예: 1 → 01시 */
+  windowStartHour: number;
+  /** 발행 가능 종료 시 (0~23, KST) 예: 5 → 05시. start>end면 자정 넘김 */
+  windowEndHour: number;
   enabled: boolean;
   /** 아직 발행하지 않은 키워드 큐 (앞에서부터 소진) */
   keywordQueue: string[];
@@ -279,6 +283,8 @@ export interface BlogWritingJob {
   phone: string;
   brandName: string;
   publishMode: "random" | "continuous";
+  windowStartHour?: number;
+  windowEndHour?: number;
   /** continuous면 순서, random이면 권장 시각(ISO) */
   scheduledAt: string | null;
   status: BlogJobStatus;

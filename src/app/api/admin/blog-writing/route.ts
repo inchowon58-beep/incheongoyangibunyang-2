@@ -56,6 +56,14 @@ export async function PUT(req: NextRequest) {
         body.publishMode === "random" || body.publishMode === "continuous"
           ? (body.publishMode as BlogPublishMode)
           : undefined,
+      windowStartHour:
+        typeof body.windowStartHour === "number" || typeof body.windowStartHour === "string"
+          ? Number(body.windowStartHour)
+          : undefined,
+      windowEndHour:
+        typeof body.windowEndHour === "number" || typeof body.windowEndHour === "string"
+          ? Number(body.windowEndHour)
+          : undefined,
       enabled: typeof body.enabled === "boolean" ? body.enabled : undefined,
       keywordsText:
         typeof body.keywordsText === "string" ? body.keywordsText : undefined,

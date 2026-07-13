@@ -14,6 +14,8 @@ interface BlogConfig {
   writingStyle: "info" | "review";
   dailyCount: number;
   publishMode: "random" | "continuous";
+  windowStartHour: number;
+  windowEndHour: number;
   enabled: boolean;
   keywordsText: string;
   keywordQueueCount: number;
@@ -24,6 +26,8 @@ interface BlogConfig {
   updatedAt: string;
 }
 
+const HOUR_OPTIONS = Array.from({ length: 24 }, (_, h) => h);
+
 const emptyForm: {
   naverId: string;
   naverPassword: string;
@@ -31,6 +35,8 @@ const emptyForm: {
   writingStyle: "info" | "review";
   dailyCount: number;
   publishMode: "random" | "continuous";
+  windowStartHour: number;
+  windowEndHour: number;
   enabled: boolean;
   keywordsText: string;
 } = {
@@ -40,6 +46,8 @@ const emptyForm: {
   writingStyle: "info",
   dailyCount: 1,
   publishMode: "random",
+  windowStartHour: 9,
+  windowEndHour: 21,
   enabled: false,
   keywordsText: "",
 };
@@ -71,6 +79,8 @@ export default function BlogWritingClient() {
           writingStyle: c.writingStyle || "info",
           dailyCount: c.dailyCount || 1,
           publishMode: c.publishMode || "random",
+          windowStartHour: c.windowStartHour ?? 9,
+          windowEndHour: c.windowEndHour ?? 21,
           enabled: !!c.enabled,
           keywordsText: c.keywordsText || "",
         });
@@ -118,6 +128,8 @@ export default function BlogWritingClient() {
             writingStyle: c.writingStyle,
             dailyCount: c.dailyCount,
             publishMode: c.publishMode,
+            windowStartHour: c.windowStartHour ?? 9,
+            windowEndHour: c.windowEndHour ?? 21,
             enabled: c.enabled,
             keywordsText: c.keywordsText,
           }));
@@ -282,7 +294,7 @@ export default function BlogWritingClient() {
                   />
                 </div>
                 <div>
-                  <label className={labelClass}>발행 시간</label>
+                  <label className={labelClass}>발행 방식</label>
                   <select
                     className={inputClass}
                     value={form.publishMode}
@@ -293,10 +305,56 @@ export default function BlogWritingClient() {
                       }))
                     }
                   >
-                    <option value="random">랜덤 (하루 중 분산)</option>
-                    <option value="continuous">연속발행 (짧은 간격 순차)</option>
+                    <option value="random">랜덤 (시간대 안 분산)</option>
+                    <option value="continuous">연속발행 (시간대 안 순차)</option>
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className={labelClass}>발행 시간대 (한국시간)</label>
+                <div className="flex flex-wrap items-center gap-2">
+                  <select
+                    className={`${inputClass} w-auto min-w-[100px]`}
+                    value={form.windowStartHour}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        windowStartHour: Number(e.target.value),
+                      }))
+                    }
+                  >
+                    {HOUR_OPTIONS.map((h) => (
+                      <option key={`s-${h}`} value={h}>
+                        {h}시
+                      </option>
+                    ))}
+                  </select>
+                  <span className="text-sm text-gray-500">~</span>
+                  <select
+                    className={`${inputClass} w-auto min-w-[100px]`}
+                    value={form.windowEndHour}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        windowEndHour: Number(e.target.value),
+                      }))
+                    }
+                  >
+                    {HOUR_OPTIONS.map((h) => (
+                      <option key={`e-${h}`} value={h}>
+                        {h}시
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <p className="text-[11px] text-gray-400 mt-1.5 leading-relaxed">
+                  예: 1시~5시 → 그날 01:00~05:00 사이에만 실행.
+                  {form.windowEndHour < form.windowStartHour
+                    ? " 종료가 시작보다 이르면 자정을 넘겨 다음날까지로 처리합니다."
+                    : ""}{" "}
+                  랜덤/연속 모두 이 시간대 안에서만 스케줄됩니다.
+                </p>
               </div>
 
               <div>

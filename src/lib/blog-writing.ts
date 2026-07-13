@@ -23,8 +23,11 @@ export interface BlogWritingPublicConfig {
   writingStyle: BlogWritingStyle;
   dailyCount: number;
   publishMode: BlogPublishMode;
+  /** 발행 시간대 시작 (0~23, KST) */
+  windowStartHour: number;
+  /** 발행 시간대 종료 (0~23, KST) */
+  windowEndHour: number;
   enabled: boolean;
-  /** 관리자 텍스트에어리어용 — 줄바꿈 구분 */
   keywordsText: string;
   keywordQueueCount: number;
   publishedToday: number;
@@ -43,6 +46,104 @@ function todayKst(): string {
   }).format(new Date());
 }
 
+function clampHour(h: number, fallback: number): number {
+  if (!Number.isFinite(h)) return fallback;
+  return Math.max(0, Math.min(23, Math.floor(h)));
+}
+
+function resolveWindowHours(site: {
+  windowStartHour?: number;
+  windowEndHour?: number;
+}): { start: number; end: number } {
+  return {
+    start: clampHour(site.windowStartHour ?? 9, 9),
+    end: clampHour(site.windowEndHour ?? 21, 21),
+  };
+}
+
+function atKst(dateStr: string, hour: number, minute: number): Date {
+  const hh = String(hour).padStart(2, "0");
+  const mm = String(Math.max(0, Math.min(59, minute))).padStart(2, "0");
+  return new Date(`${dateStr}T${hh}:${mm}:00+09:00`);
+}
+
+function addDaysKst(dateStr: string, days: number): string {
+  const base = new Date(`${dateStr}T12:00:00+09:00`);
+  base.setTime(base.getTime() + days * 86400000);
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(base);
+}
+
+/**
+ * 발행 시간대 안에서 scheduledAt(ISO) 생성.
+ * start=1, end=5 → 오늘 01:00~05:00 KST
+ * start=22, end=2 → 오늘 22:00~다음날 02:00
+ */
+function scheduleInPublishWindow(
+  mode: BlogPublishMode,
+  startHour: number,
+  endHour: number,
+  index: number,
+  total: number
+): string {
+  const start = clampHour(startHour, 9);
+  const end = clampHour(endHour, 21);
+  const today = todayKst();
+  const overnight = end < start;
+
+  const windowStart = atKst(today, start, 0);
+  const windowEnd = overnight
+    ? atKst(addDaysKst(today, 1), end, 0)
+    : end === start
+      ? atKst(today, start, 59)
+      : atKst(today, end, 0);
+
+  let spanMs = windowEnd.getTime() - windowStart.getTime();
+  if (spanMs <= 0) spanMs = 60 * 60 * 1000;
+
+  const now = Date.now();
+  let pickMs: number;
+
+  if (mode === "continuous") {
+    const n = Math.max(1, total);
+    const slot = spanMs / n;
+    pickMs = windowStart.getTime() + slot * index + Math.min(2 * 60 * 1000, slot * 0.2);
+  } else {
+    pickMs = windowStart.getTime() + Math.floor(Math.random() * spanMs);
+  }
+
+  if (pickMs < now) {
+    const remain = windowEnd.getTime() - now;
+    if (remain > 2 * 60 * 1000) {
+      pickMs =
+        mode === "continuous"
+          ? now + Math.floor(((remain - 60 * 1000) * (index + 1)) / Math.max(1, total))
+          : now + 60 * 1000 + Math.floor(Math.random() * (remain - 60 * 1000));
+    } else if (windowEnd.getTime() > now) {
+      pickMs = now + 30 * 1000;
+    } else {
+      const tomorrow = addDaysKst(today, 1);
+      const nextStart = atKst(tomorrow, start, 0);
+      const nextEnd = overnight
+        ? atKst(addDaysKst(tomorrow, 1), end, 0)
+        : end === start
+          ? atKst(tomorrow, start, 59)
+          : atKst(tomorrow, end, 0);
+      const nextSpan = Math.max(60 * 1000, nextEnd.getTime() - nextStart.getTime());
+      pickMs =
+        mode === "continuous"
+          ? nextStart.getTime() + (nextSpan / Math.max(1, total)) * index
+          : nextStart.getTime() + Math.floor(Math.random() * nextSpan);
+    }
+  }
+
+  return new Date(pickMs).toISOString();
+}
+
 function resolveSiteKey(tenantId: string | null | undefined, hostname: string): string {
   if (tenantId) return `tenant:${tenantId}`;
   return hostname ? `host:${hostname}` : "legacy";
@@ -52,20 +153,6 @@ function rolloverDailyCounts(site: BlogWritingSiteRecord): BlogWritingSiteRecord
   const today = todayKst();
   if (site.publishedDate === today) return site;
   return { ...site, publishedDate: today, publishedToday: 0 };
-}
-
-function randomTimeTodayIso(): string {
-  const now = new Date();
-  const startHour = 9;
-  const endHour = 21;
-  const hour = startHour + Math.floor(Math.random() * (endHour - startHour));
-  const minute = Math.floor(Math.random() * 60);
-  const d = new Date(now);
-  d.setHours(hour, minute, 0, 0);
-  if (d.getTime() < now.getTime()) {
-    d.setTime(now.getTime() + 5 * 60 * 1000 + Math.floor(Math.random() * 30 * 60 * 1000));
-  }
-  return d.toISOString();
 }
 
 export async function getBlogWritingContext(): Promise<{
@@ -105,6 +192,7 @@ function toPublic(
 ): BlogWritingPublicConfig {
   const rolled = rolloverDailyCounts(site);
   const dailyCount = Math.max(0, rolled.dailyCount || 0);
+  const { start, end } = resolveWindowHours(rolled);
   return {
     siteKey: rolled.siteKey,
     siteUrl: rolled.siteUrl,
@@ -116,6 +204,8 @@ function toPublic(
     writingStyle: rolled.writingStyle,
     dailyCount,
     publishMode: rolled.publishMode,
+    windowStartHour: start,
+    windowEndHour: end,
     enabled: rolled.enabled,
     keywordsText: rolled.keywordQueue.join("\n"),
     keywordQueueCount: rolled.keywordQueue.length,
@@ -141,6 +231,8 @@ function defaultSiteRecord(
     writingStyle: "info",
     dailyCount: 1,
     publishMode: "random",
+    windowStartHour: 9,
+    windowEndHour: 21,
     enabled: false,
     keywordQueue: [],
     publishedToday: 0,
@@ -170,11 +262,21 @@ export interface SaveBlogWritingInput {
   writingStyle?: BlogWritingStyle;
   dailyCount?: number;
   publishMode?: BlogPublishMode;
+  windowStartHour?: number;
+  windowEndHour?: number;
   enabled?: boolean;
-  /** 전체 키워드 텍스트(줄/쉼표) — 큐를 이 목록으로 교체 */
   keywordsText?: string;
-  /** true면 기존 큐 뒤에 추가 */
   appendKeywords?: boolean;
+}
+
+function parseHourInput(value: unknown, fallback: number): number {
+  const n =
+    typeof value === "number"
+      ? value
+      : typeof value === "string"
+        ? Number(value)
+        : NaN;
+  return clampHour(n, fallback);
 }
 
 export async function saveBlogWritingConfig(
@@ -186,6 +288,7 @@ export async function saveBlogWritingConfig(
   const prev = rolloverDailyCounts(
     idx >= 0 ? store.sites[idx] : defaultSiteRecord(ctx)
   );
+  const prevWindow = resolveWindowHours(prev);
 
   let keywordQueue = prev.keywordQueue;
   if (typeof input.keywordsText === "string") {
@@ -220,12 +323,19 @@ export async function saveBlogWritingConfig(
       input.publishMode === "continuous" || input.publishMode === "random"
         ? input.publishMode
         : prev.publishMode,
+    windowStartHour:
+      input.windowStartHour !== undefined
+        ? parseHourInput(input.windowStartHour, prevWindow.start)
+        : prevWindow.start,
+    windowEndHour:
+      input.windowEndHour !== undefined
+        ? parseHourInput(input.windowEndHour, prevWindow.end)
+        : prevWindow.end,
     enabled: typeof input.enabled === "boolean" ? input.enabled : prev.enabled,
     keywordQueue,
     updatedAt: new Date().toISOString(),
   };
 
-  // 사이트 등록 연동 아이디가 있고 입력이 비었으면 자동 채움
   if (!next.naverId && ctx.linkedNaverId) {
     next.naverId = ctx.linkedNaverId;
   }
@@ -266,6 +376,7 @@ export async function ensureTodayBlogJobs(siteKey?: string): Promise<number> {
     const selected = site.keywordQueue.slice(0, take);
     const rest = site.keywordQueue.slice(take);
     const now = new Date().toISOString();
+    const { start, end } = resolveWindowHours(site);
 
     for (let j = 0; j < selected.length; j++) {
       const keyword = selected[j];
@@ -280,10 +391,9 @@ export async function ensureTodayBlogJobs(siteKey?: string): Promise<number> {
         phone: site.phone,
         brandName: site.brandName,
         publishMode: site.publishMode,
-        scheduledAt:
-          site.publishMode === "random"
-            ? randomTimeTodayIso()
-            : new Date(Date.now() + j * 3 * 60 * 1000).toISOString(),
+        windowStartHour: start,
+        windowEndHour: end,
+        scheduledAt: scheduleInPublishWindow(site.publishMode, start, end, j, take),
         status: "pending",
         createdAt: now,
       });
@@ -316,13 +426,14 @@ export interface BlogWorkerJobPayload {
   brandName: string;
   phone: string;
   naverId: string;
-  /** 설정된 경우만 — 없으면 VM 로컬 비밀번호 사용 */
   naverPassword?: string;
   keyword: string;
   writingStyle: BlogWritingStyle;
   writingStyleLabel: string;
   basePrompt: string;
   publishMode: BlogPublishMode;
+  windowStartHour: number;
+  windowEndHour: number;
   scheduledAt: string | null;
   siteLink: string;
 }
@@ -340,9 +451,7 @@ export async function getPendingBlogJobsForNaverId(
   await ensureTodayBlogJobs();
 
   const store = await getBlogWritingStore();
-  const sitePasswords = new Map(
-    store.sites.map((s) => [s.siteKey, s.naverPassword] as const)
-  );
+  const siteByKey = new Map(store.sites.map((s) => [s.siteKey, s] as const));
 
   return store.jobs
     .filter(
@@ -356,7 +465,12 @@ export async function getPendingBlogJobsForNaverId(
       return at.localeCompare(bt);
     })
     .map((j) => {
-      const pw = sitePasswords.get(j.siteKey) || "";
+      const site = siteByKey.get(j.siteKey);
+      const pw = site?.naverPassword || "";
+      const window = resolveWindowHours({
+        windowStartHour: j.windowStartHour ?? site?.windowStartHour,
+        windowEndHour: j.windowEndHour ?? site?.windowEndHour,
+      });
       return {
         id: j.id,
         siteUrl: j.siteUrl,
@@ -369,6 +483,8 @@ export async function getPendingBlogJobsForNaverId(
         writingStyleLabel: styleLabel(j.writingStyle),
         basePrompt: j.basePrompt,
         publishMode: j.publishMode,
+        windowStartHour: window.start,
+        windowEndHour: window.end,
         scheduledAt: j.scheduledAt,
         siteLink: j.siteUrl,
       };

@@ -43,12 +43,15 @@ POST /api/blog-worker/jobs
 
 ### 발행 시간
 
-| publishMode | 의미 |
-|-------------|------|
-| `random` | job마다 `scheduledAt`이 하루 중 랜덤 시각 |
-| `continuous` | 짧은 간격(약 3분) 순차 `scheduledAt` |
+| 설정 | 의미 |
+|------|------|
+| `windowStartHour` ~ `windowEndHour` | 한국시간 발행 가능 구간 (예: 1~5 → 01:00~05:00) |
+| `publishMode: random` | 구간 안 랜덤 `scheduledAt` |
+| `publishMode: continuous` | 구간 안 순차 분산 `scheduledAt` |
 
-VM은 `scheduledAt` 이전에는 발행을 미루면 됩니다.
+종료 시가 시작 시보다 이르면(예: 22~2) 자정을 넘는 구간으로 처리합니다.
+
+VM은 `scheduledAt` 이전에는 발행을 미루면 됩니다. 응답에 `windowStartHour` / `windowEndHour`도 포함됩니다.
 
 ---
 
