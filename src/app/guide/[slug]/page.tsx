@@ -20,6 +20,7 @@ import {
   enforceExactKeyword,
   normalizeSeoKeyword,
   stripSeoJargon,
+  stripSeoJargonFromHtml,
 } from "@/lib/seo-keyword";
 import GuideReviewsSection from "@/components/GuideReviewsSection";
 import { getSeoReviewsForKeyword } from "@/lib/seo-reviews";
@@ -107,7 +108,7 @@ export default async function GuidePage({ params }: Props) {
   const description = stripSeoJargon(
     enforceExactKeyword(resolved.description, exactKeyword)
   );
-  const contentHtml = stripSeoJargon(
+  const contentHtml = stripSeoJargonFromHtml(
     enforceExactKeyword(resolved.content, exactKeyword)
   );
   const geo = resolveSeoGeoFromKeyword(exactKeyword);

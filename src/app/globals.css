@@ -534,6 +534,36 @@ body.maison-root .maison-guide .maison-prose .seo-content-image__media {
   box-shadow: 0 12px 36px rgba(44, 38, 34, 0.08);
 }
 
+body.maison-root .maison-guide .maison-prose .seo-image-row {
+  display: grid;
+  gap: 1rem;
+  margin: 1.75rem 0;
+  align-items: stretch;
+}
+
+body.maison-root .maison-guide .maison-prose .seo-image-row--1 {
+  grid-template-columns: 1fr;
+}
+
+body.maison-root .maison-guide .maison-prose .seo-image-row--2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+body.maison-root .maison-guide .maison-prose .seo-image-row--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+body.maison-root .maison-guide .maison-prose .seo-image-row .seo-content-image {
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  body.maison-root .maison-guide .maison-prose .seo-image-row--2,
+  body.maison-root .maison-guide .maison-prose .seo-image-row--3 {
+    grid-template-columns: 1fr;
+  }
+}
+
 body.maison-root .maison-guide details summary::-webkit-details-marker {
   display: none;
 }

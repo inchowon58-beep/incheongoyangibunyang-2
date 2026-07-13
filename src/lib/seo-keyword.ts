@@ -93,7 +93,7 @@ export function polishSeoHtmlContent(html: string, keyword: string): string {
   // HTML 전체를 compact 재조립하지 않음 — 키워드만 원본으로 강제
   let result = dedupeRegionInText(html, region);
   result = enforceExactKeyword(result, exact);
-  return stripSeoJargon(result);
+  return stripSeoJargonFromHtml(result);
 }
 
 /** 제목에서 상호명 제거 (메타 template에서 1회만 붙임) */
@@ -181,19 +181,31 @@ const TITLE_TEMPLATES: ((phrase: string, region: string | null) => string)[] = [
   (phrase) => `${phrase} 생활 가이드`,
 ];
 
-/** 공개 페이지에 노출되면 안 되는 SEO·내부 용어 제거 */
-const PUBLIC_JARGON_RE =
-  /\s*(SEO|seo|S\.E\.O|검색\s*최적화|콘텐츠\s*최적화|노출\s*최적화|최적화\s*문서|최적화)\s*/gi;
-
+/** 공개 페이지에 노출되면 안 되는 SEO·내부 용어 제거 (일반 텍스트용) */
 export function stripSeoJargon(text: string): string {
   if (!text) return text;
   return text
-    .replace(PUBLIC_JARGON_RE, " ")
+    .replace(/\bSEO\b/gi, " ")
+    .replace(/S\.E\.O/gi, " ")
+    .replace(/검색\s*최적화/g, " ")
+    .replace(/콘텐츠\s*최적화/g, " ")
+    .replace(/노출\s*최적화/g, " ")
+    .replace(/최적화\s*문서/g, " ")
+    .replace(/(^|[\s·|])최적화(?=$|[\s·|.,，])/g, "$1")
     .replace(/\s*[·|]\s*[·|]/g, " · ")
     .replace(/\s{2,}/g, " ")
     .replace(/\s*[·|-]\s*$/g, "")
     .replace(/^\s*[·|-]\s*/g, "")
     .trim();
+}
+
+/** HTML 태그·class(seo-image-row 등)는 보존하고, 텍스트 노드만 정리 */
+export function stripSeoJargonFromHtml(html: string): string {
+  if (!html) return html;
+  return html.replace(/>([^<]*)</g, (full, text: string) => {
+    if (!text || !/(SEO|최적화)/i.test(text)) return full;
+    return `>${stripSeoJargon(text)}<`;
+  });
 }
 
 export function finalizeSeoTitle(title: string, keyword: string): string {
