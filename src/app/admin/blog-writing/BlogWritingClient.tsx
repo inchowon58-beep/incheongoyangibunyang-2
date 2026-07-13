@@ -20,6 +20,7 @@ interface BlogConfig {
   imageCount: number;
   defaultImageCdn: string;
   enabled: boolean;
+  persisted?: boolean;
   keywordsText: string;
   keywordQueueCount: number;
   publishedToday: number;
@@ -80,7 +81,8 @@ export default function BlogWritingClient() {
         const c = data.config as BlogConfig;
         setConfig(c);
         setForm({
-          naverId: c.naverId || c.linkedNaverIdFromSite || "",
+          // 저장된 값만 사용. 미저장이면 빈칸 (연결 계정으로 자동 채우지 않음)
+          naverId: c.naverId || "",
           naverPassword: "",
           basePrompt: c.basePrompt || "",
           writingStyle: c.writingStyle || "info",
@@ -194,7 +196,7 @@ export default function BlogWritingClient() {
                 <div>
                   <h2 className="font-bold text-dark">자동작성 설정</h2>
                   <p className="text-xs text-gray-500 mt-1">
-                    사이트 등록 시 연결한 네이버 아이디의 VM에서 발행합니다.
+                    VM에 설정한 네이버 아이디와 동일하게 입력하세요. (사이트 등록 계정과 달라도 됩니다)
                   </p>
                 </div>
                 <label className="inline-flex items-center gap-2 text-sm cursor-pointer">
@@ -215,13 +217,15 @@ export default function BlogWritingClient() {
                     className={inputClass}
                     value={form.naverId}
                     onChange={(e) => setForm((f) => ({ ...f, naverId: e.target.value }))}
-                    placeholder="사이트 등록 시 연결한 아이디"
+                    placeholder="예: dlscksspwlq (VM 네이버 아이디)"
                     autoComplete="off"
+                    required
                   />
                   {config?.linkedNaverIdFromSite && (
                     <p className="text-[11px] text-gray-400 mt-1">
-                      사이트 연결 계정: {config.linkedNaverIdFromSite}
-                      {form.naverId !== config.linkedNaverIdFromSite && (
+                      사이트 등록 계정(참고): {config.linkedNaverIdFromSite}
+                      {form.naverId.trim().toLowerCase() !==
+                        config.linkedNaverIdFromSite.trim().toLowerCase() && (
                         <button
                           type="button"
                           className="ml-2 text-sky-600 hover:underline"
@@ -232,9 +236,14 @@ export default function BlogWritingClient() {
                             }))
                           }
                         >
-                          불러오기
+                          이 계정 넣기
                         </button>
                       )}
+                    </p>
+                  )}
+                  {config && config.persisted === false && (
+                    <p className="text-[11px] text-amber-600 mt-1">
+                      아직 저장된 블로그 설정이 없습니다. 아이디 입력 후 설정 저장을 눌러주세요.
                     </p>
                   )}
                 </div>

@@ -34,6 +34,8 @@ export interface BlogWritingPublicConfig {
   /** 사이트 기본 CDN (비우면 이 값 사용 가능) */
   defaultImageCdn: string;
   enabled: boolean;
+  /** store에 실제 저장된 설정인지 (false면 화면 기본값일 뿐) */
+  persisted: boolean;
   keywordsText: string;
   keywordQueueCount: number;
   publishedToday: number;
@@ -155,6 +157,24 @@ function resolveSiteKey(tenantId: string | null | undefined, hostname: string): 
   return hostname ? `host:${hostname}` : "legacy";
 }
 
+function findSiteRecord(
+  sites: BlogWritingSiteRecord[],
+  siteKey: string,
+  siteUrl: string
+): { index: number; site: BlogWritingSiteRecord | null } {
+  const byKey = sites.findIndex((s) => s.siteKey === siteKey);
+  if (byKey >= 0) return { index: byKey, site: sites[byKey] };
+
+  const normalizedUrl = siteUrl.replace(/\/$/, "").toLowerCase();
+  if (normalizedUrl) {
+    const byUrl = sites.findIndex(
+      (s) => (s.siteUrl || "").replace(/\/$/, "").toLowerCase() === normalizedUrl
+    );
+    if (byUrl >= 0) return { index: byUrl, site: sites[byUrl] };
+  }
+  return { index: -1, site: null };
+}
+
 function rolloverDailyCounts(site: BlogWritingSiteRecord): BlogWritingSiteRecord {
   const today = todayKst();
   if (site.publishedDate === today) return site;
@@ -223,7 +243,8 @@ export async function getBlogWritingContext(): Promise<{
 function toPublic(
   site: BlogWritingSiteRecord,
   linkedNaverId: string | null,
-  defaults: { imageCdn: string; imageCount: number }
+  defaults: { imageCdn: string; imageCount: number },
+  persisted: boolean
 ): BlogWritingPublicConfig {
   const rolled = rolloverDailyCounts(site);
   const dailyCount = Math.max(0, rolled.dailyCount || 0);
@@ -234,7 +255,8 @@ function toPublic(
     siteUrl: rolled.siteUrl,
     brandName: rolled.brandName,
     phone: rolled.phone,
-    naverId: rolled.naverId,
+    // 저장된 값 우선. 미저장(기본값)일 때만 연결 계정을 힌트로 넣지 않고 빈칸/저장값 유지
+    naverId: rolled.naverId || "",
     hasPassword: !!rolled.naverPassword,
     basePrompt: rolled.basePrompt,
     writingStyle: rolled.writingStyle,
@@ -246,6 +268,7 @@ function toPublic(
     imageCount: images.imageCount,
     defaultImageCdn: defaults.imageCdn,
     enabled: rolled.enabled,
+    persisted,
     keywordsText: rolled.keywordQueue.join("\n"),
     keywordQueueCount: rolled.keywordQueue.length,
     publishedToday: rolled.publishedToday,
@@ -264,7 +287,8 @@ function defaultSiteRecord(
     siteUrl: ctx.siteUrl,
     brandName: ctx.brandName,
     phone: ctx.phone,
-    naverId: ctx.linkedNaverId || "",
+    // 사이트 등록 계정과 블로그 VM 계정이 다를 수 있음 → 자동으로 넣지 않음
+    naverId: "",
     naverPassword: "",
     basePrompt: "",
     writingStyle: "info",
@@ -285,25 +309,28 @@ function defaultSiteRecord(
 export async function getPublicBlogWritingConfig(): Promise<BlogWritingPublicConfig> {
   const ctx = await getBlogWritingContext();
   const store = await getBlogWritingStore();
-  const existing = store.sites.find((s) => s.siteKey === ctx.siteKey);
+  const found = findSiteRecord(store.sites, ctx.siteKey, ctx.siteUrl);
   const defaults = {
     imageCdn: ctx.defaultImageCdn,
     imageCount: ctx.defaultImageCount,
   };
+  const base = found.site || defaultSiteRecord(ctx);
   const site = rolloverDailyCounts({
-    ...(existing || defaultSiteRecord(ctx)),
+    ...base,
+    siteKey: ctx.siteKey,
     siteUrl: ctx.siteUrl,
     brandName: ctx.brandName,
     phone: ctx.phone,
   });
   const today = todayKst();
-  const assigned = existing
+  const assigned = found.site
     ? countTodayAssignedJobs(store.jobs, site.siteKey, today)
     : 0;
   return toPublic(
     { ...site, publishedToday: assigned, publishedDate: today },
     ctx.linkedNaverId,
-    defaults
+    defaults,
+    !!found.site
   );
 }
 
@@ -339,10 +366,8 @@ export async function saveBlogWritingConfig(
 ): Promise<BlogWritingPublicConfig> {
   const ctx = await getBlogWritingContext();
   const store = await getBlogWritingStore();
-  const idx = store.sites.findIndex((s) => s.siteKey === ctx.siteKey);
-  const prev = rolloverDailyCounts(
-    idx >= 0 ? store.sites[idx] : defaultSiteRecord(ctx)
-  );
+  const found = findSiteRecord(store.sites, ctx.siteKey, ctx.siteUrl);
+  const prev = rolloverDailyCounts(found.site || defaultSiteRecord(ctx));
   const prevWindow = resolveWindowHours(prev);
   const defaults = {
     imageCdn: ctx.defaultImageCdn,
@@ -373,7 +398,11 @@ export async function saveBlogWritingConfig(
     siteUrl: ctx.siteUrl,
     brandName: ctx.brandName,
     phone: ctx.phone,
-    naverId: (input.naverId ?? prev.naverId).trim().toLowerCase(),
+    // 입력값을 그대로 저장 (사이트 연결 계정으로 덮어쓰지 않음)
+    naverId:
+      typeof input.naverId === "string"
+        ? input.naverId.trim().toLowerCase()
+        : (prev.naverId || "").trim().toLowerCase(),
     naverPassword: input.clearPassword
       ? ""
       : typeof input.naverPassword === "string" && input.naverPassword.trim()
@@ -407,21 +436,25 @@ export async function saveBlogWritingConfig(
     updatedAt: new Date().toISOString(),
   };
 
-  if (!next.naverId && ctx.linkedNaverId) {
-    next.naverId = ctx.linkedNaverId;
-  }
-
   const sites = [...store.sites];
-  if (idx >= 0) sites[idx] = next;
+  if (found.index >= 0) sites[found.index] = next;
   else sites.push(next);
+
+  // siteKey가 host→tenant 등으로 바뀌면 기존 job도 함께 이전
+  const jobs =
+    found.site && found.site.siteKey !== ctx.siteKey
+      ? store.jobs.map((j) =>
+          j.siteKey === found.site!.siteKey ? { ...j, siteKey: ctx.siteKey } : j
+        )
+      : store.jobs;
 
   const data: BlogWritingStore = {
     updatedAt: new Date().toISOString(),
     sites,
-    jobs: store.jobs,
+    jobs,
   };
   await saveBlogWritingStore(data);
-  return toPublic(next, ctx.linkedNaverId, defaults);
+  return toPublic(next, ctx.linkedNaverId, defaults, true);
 }
 
 function jobCreatedDateKst(iso: string): string {
