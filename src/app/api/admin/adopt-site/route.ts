@@ -20,7 +20,7 @@ const DOMAIN_RE = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])
 /**
  * 이미 Vercel에 배포된 사이트를 Supabase 등록 목록에만 편입.
  * - Vercel 도메인 재등록 없음
- * - 현재 사이트(메종드꼬똥 M 디자인) 설정 그대로 유지
+ * - 현재 사이트(메종드폼스키 M 디자인) 설정 그대로 유지
  * - 네이버 계정 연결 (슬랙은 선택)
  */
 export async function POST(req: NextRequest) {
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    /** 현재 배포 사이트 디자인(M · 메종드꼬똥) 그대로 유지 */
+    /** 현재 배포 사이트 디자인(M · 메종드폼스키) 그대로 유지 */
     const contentData: TenantContentData = {
       siteDesign: DEFAULT_SITE_DESIGN,
       designVariant: "modern",
@@ -114,12 +114,12 @@ export async function POST(req: NextRequest) {
       tagline: legacy.tagline || DEFAULT_SITE_CONFIG.tagline,
       description: legacy.description || DEFAULT_SITE_CONFIG.description,
       keywords:
-        "꼬똥드툴레아,메종드꼬똥,꼬똥드툴레아분양,Coton de Tulear,Maison de Coton",
+        "폼스키,메종드폼스키,폼스키분양,Pomsky,Maison de Pomsky",
       heroHeadline: siteName,
       heroSubcopy:
         legacy.tagline ||
-        "왕실이 아끼던 코튼 코트의 반려견 — 품격 있는 분양을 안내합니다.",
-      heroBadge: "Maison de Coton",
+        "포메라니안과 시베리안 허스키가 만나 태어난 하이브리드견 — 품격 있는 분양을 안내합니다.",
+      heroBadge: "Maison de Pomsky",
       aboutText: legacy.description || DEFAULT_SITE_CONFIG.description,
       exposureMode: legacy.exposureMode || DEFAULT_SITE_CONFIG.exposureMode,
     };
@@ -160,7 +160,7 @@ export async function POST(req: NextRequest) {
       subdomain,
       siteUrl,
       siteDesign: DEFAULT_SITE_DESIGN,
-      message: `기존 사이트를 등록 목록에 편입했습니다. (메종드꼬똥 M 디자인 유지, Vercel 재배포 없음) ${siteUrl}`,
+      message: `기존 사이트를 등록 목록에 편입했습니다. (메종드폼스키 M 디자인 유지, Vercel 재배포 없음) ${siteUrl}`,
     });
   } catch (e) {
     const message = e instanceof Error ? e.message : "편입 중 알 수 없는 오류";

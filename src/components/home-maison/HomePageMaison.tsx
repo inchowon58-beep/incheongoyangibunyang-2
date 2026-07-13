@@ -7,7 +7,7 @@ import AboutMaison from "@/components/home-maison/AboutMaison";
 import GalleryMaison from "@/components/home-maison/GalleryMaison";
 import ReviewsMaison from "@/components/home-maison/ReviewsMaison";
 
-/** M 디자인 — 꼬똥드툴레아 메종드꼬똥 럭셔리 소개 홈 */
+/** M 디자인 — 폼스키 메종드폼스키 럭셔리 소개 홈 */
 export default function HomePageMaison() {
   return (
     <>

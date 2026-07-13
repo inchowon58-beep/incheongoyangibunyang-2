@@ -18,7 +18,7 @@ export default function HeaderMaison() {
         <div className="flex items-center justify-between h-16 lg:h-[4.5rem]">
           <Link href="/" className="group min-w-0">
             <span className="maison-brand-en block text-[10px] sm:text-[11px] tracking-[0.35em] uppercase text-[var(--maison-gold)]">
-              Maison de Coton
+              Maison de Pomsky
             </span>
             <span className="block text-lg sm:text-xl font-medium text-[var(--maison-ink)] tracking-tight truncate">
               {site.brandName}

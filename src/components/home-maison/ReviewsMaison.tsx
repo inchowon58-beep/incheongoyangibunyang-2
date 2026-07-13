@@ -15,7 +15,7 @@ export default async function ReviewsMaison() {
             Family Reviews
           </h2>
           <p className="text-[var(--maison-muted)]">
-            메종드꼬똥과 함께한 아홉 가족의 이야기
+            메종드폼스키와 함께한 아홉 가족의 이야기
           </p>
         </div>
 
@@ -28,7 +28,7 @@ export default async function ReviewsMaison() {
               <div className="relative aspect-[4/3] overflow-hidden">
                 <Image
                   src={getImageUrl(review.imageIndex, site)}
-                  alt={`${review.name} 님의 꼬똥드툴레아`}
+                  alt={`${review.name} 님의 폼스키`}
                   fill
                   className="object-cover"
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"

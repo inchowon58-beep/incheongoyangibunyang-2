@@ -119,7 +119,7 @@ export function buildSiteMetadata(config: SiteConfig): Metadata {
   const images = buildOgImageMeta(config, "/opengraph-image", config.brandName);
   const baseUrl = getSiteUrl(config);
   const suffixKeywords = pickSeoSuffixKeywords(config.brandName, 3);
-  const defaultTitle = `${config.companyName || config.brandName} | Maison de Coton · ${suffixKeywords.join("·")}`;
+  const defaultTitle = `${config.companyName || config.brandName} | Maison de Pomsky · ${suffixKeywords.join("·")}`;
 
   return {
     metadataBase: new URL(baseUrl),
@@ -130,11 +130,11 @@ export function buildSiteMetadata(config: SiteConfig): Metadata {
     description: config.description,
     keywords: [
       config.brandName,
-      "꼬똥드툴레아",
-      "메종드꼬똥",
-      "꼬똥드툴레아 분양",
-      "Coton de Tulear",
-      "Maison de Coton",
+      "폼스키",
+      "메종드폼스키",
+      "폼스키 분양",
+      "Pomsky",
+      "Maison de Pomsky",
       ...suffixKeywords,
     ],
     alternates: {

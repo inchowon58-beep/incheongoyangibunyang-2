@@ -47,8 +47,8 @@ const CONTENT_RULES = `
 - 키워드는 **전달받은 문자열 그대로** 사용 (글자 사이 띄어쓰기·줄바꿈으로 쪼개지 말 것)
 - 키워드를 자연스럽게 본문 전체에 5~7회 포함
 - 업체명·전화번호·주소는 반드시 {{brandName}}, {{phone}}, {{address}} 등 토큰으로만 표기 (직접 입력 금지)
-- 꼬똥드툴레아(Coton de Tuléar) 품종 소개·분양·케어·성격·털관리 관점으로 작성
-- 메종드꼬똥(Maison de Coton)의 프리미엄·럭셔리·포근한 톤 유지. 영문 소제목·핵심 표현을 자연스럽게 함께 사용
+- 폼스키(Pomsky) 품종 소개·분양·케어·성격·털관리 관점으로 작성
+- 메종드폼스키(Maison de Pomsky)의 프리미엄·럭셔리·포근한 톤 유지. 영문 소제목·핵심 표현을 자연스럽게 함께 사용
 - **금지 단어(제목·본문·FAQ·설명에 절대 사용 금지)**: SEO, 검색최적화, 최적화, 인덱싱, 키워드문서, 노출최적화, 콘텐츠최적화
 - 허위·과장·확정 수익 보장·과장 건강 효능 표현 금지
 - 신뢰감 있는 프리미엄 상담 톤
@@ -64,7 +64,7 @@ const CONTENT_RULES = `
 `;
 
 const WRITING_ANGLES = [
-  "꼬똥드툴레아 품종 역사와 왕실 유산을 중심으로",
+  "폼스키 품종 역사와 하이브리드 기원을 중심으로",
   "코트·털빠짐·미용 케어를 중심으로",
   "크기·성격·실내 반려 적합성을 중심으로",
   "분양 전 체크포인트와 상담 절차를 중심으로",
@@ -140,7 +140,7 @@ ${siteBrief.heroHeadline ? `- 히어로: ${siteBrief.heroHeadline}` : ""}
 `
     : "";
 
-  const prompt = `당신은 꼬똥드툴레아(Coton de Tuléar) 프리미엄 분양·품종 안내 전문 작가입니다. 독자가 읽기 좋은 **키워드 중심 안내 문서**를 한국어 HTML로 작성하세요. 영문 핵심어를 소제목·문장에 자연스럽게 섞어 럭셔리한 Maison de Coton 톤을 유지하세요. 제목·본문에 SEO·최적화 같은 내부 용어는 절대 쓰지 마세요.
+  const prompt = `당신은 폼스키(Pomsky) 프리미엄 분양·품종 안내 전문 작가입니다. 독자가 읽기 좋은 **키워드 중심 안내 문서**를 한국어 HTML로 작성하세요. 영문 핵심어를 소제목·문장에 자연스럽게 섞어 럭셔리한 Maison de Pomsky 톤을 유지하세요. 제목·본문에 SEO·최적화 같은 내부 용어는 절대 쓰지 마세요.
 
 브랜드 정보 (본문에 토큰 그대로 사용):
 - 상호: {{brandName}} ({{companyName}})
@@ -264,7 +264,7 @@ export function buildDefaultFaqs(keyword: string, site: SiteConfig): SeoFaq[] {
     [
       {
         question: `${keyword} 상담은 어떻게 진행되나요?`,
-        answer: `카톡 또는 전화 {{phone}}로 희망 일정·가정 환경을 알려주시면 {{brandName}}에서 ${regionNote}꼬똥드툴레아 기질·케어 포인트를 안내합니다.`,
+        answer: `카톡 또는 전화 {{phone}}로 희망 일정·가정 환경을 알려주시면 {{brandName}}에서 ${regionNote}폼스키 기질·케어 포인트를 안내합니다.`,
       },
       {
         question: `${keyword} 분양 전 꼭 확인할 점은?`,
@@ -274,7 +274,7 @@ export function buildDefaultFaqs(keyword: string, site: SiteConfig): SeoFaq[] {
     [
       {
         question: `${regionNote}${keyword} 털빠짐은 심한 편인가요?`,
-        answer: `꼬똥드툴레아는 상대적으로 털이 덜 떨어지는 편이나, 엉김 방지를 위한 정기 빗질·미용이 필요합니다. {{brandName}}에서 케어 루틴을 함께 안내합니다.`,
+        answer: `폼스키는 이중모 성향으로 계절에 따라 털빠짐이 있을 수 있습니다. 정기 빗질·산책·사회화가 중요하며 {{brandName}}에서 케어 루틴을 함께 안내합니다.`,
       },
       {
         question: `첫 반려견인데도 분양이 가능한가요?`,
@@ -305,8 +305,8 @@ const FALLBACK_VARIANTS: FallbackBuilder[] = [
     const area = region || "전국";
     return `
 <h2>${core} 기본 이해 Heritage</h2>
-<p>{{brandName}}은 ${area}를 비롯한 문의에 대해 ${core} 상담을 진행합니다. 꼬똥드툴레아(Coton de Tuléar)는 솜처럼 부드러운 코트와 사람을 향한 온화한 성격으로 프리미엄 컴패니언으로 사랑받아 온 품종입니다. 키워드로 찾는 정보는 외모뿐 아니라 기질·케어·가정 적합성까지 함께 보는 편이 안전합니다.</p>
-<p>{{brandName}}은 과장된 확정 표현 없이 확인 가능한 품종 특성과 분양 전 체크리스트를 중심으로 안내하며, 문의는 {{phone}}로 가능합니다. Maison de Coton의 철학은 품격을 지키며 가정에 맞는 인연을 잇는 것입니다.</p>
+<p>{{brandName}}은 ${area}를 비롯한 문의에 대해 ${core} 상담을 진행합니다. 폼스키(Pomsky)는 포메라니안과 시베리안 허스키의 교배로 태어난 하이브리드견으로, 허스키의 마스크·눈매와 포메라니안의 풍성한 코트가 어우러진 프리미엄 컴패니언입니다. 키워드로 찾는 정보는 외모뿐 아니라 기질·케어·가정 적합성까지 함께 보는 편이 안전합니다.</p>
+<p>{{brandName}}은 과장된 확정 표현 없이 확인 가능한 품종 특성과 분양 전 체크리스트를 중심으로 안내하며, 문의는 {{phone}}로 가능합니다. Maison de Pomsky의 철학은 품격을 지키며 가정에 맞는 인연을 잇는 것입니다.</p>
 
 <h2>${keyword} 상담 전 준비 Care Checklist</h2>
 <p>${keyword} 상담을 효율적으로 받으려면 가정 환경, 하루 돌봄 가능 시간, 미용·빗질 주기를 미리 메모해 두는 것이 좋습니다. 첫 반려견이라면 사회화와 기본 예절 훈련 계획까지 함께 조율합니다.</p>
@@ -319,7 +319,7 @@ const FALLBACK_VARIANTS: FallbackBuilder[] = [
 <p>준비가 정리되면 기질 매칭이 빨라지고, 불필요한 재상담을 줄일 수 있습니다. {{brandName}}은 우선순위를 함께 정해 드립니다.</p>
 
 <h2>${area} 라이프스타일과 매칭 Lifestyle</h2>
-<p>${area} 생활권에서도 꼬똥드툴레아는 비교적 조용한 실내견으로 잘 어울립니다. ${keyword}를 볼 때는 단순 외모보다 애착 성향, 분리불안 대비, 정기 미용 부담을 함께 점검하는 것이 좋습니다.</p>
+<p>${area} 생활권에서도 폼스키는 산책과 놀이를 즐기는 컴패니언으로 잘 어울립니다. ${keyword}를 볼 때는 단순 외모보다 활동량, 애착 성향, 분리불안 대비, 코트 관리 부담을 함께 점검하는 것이 좋습니다.</p>
 <p>{{brandName}}은 품종 지식을 바탕으로 후보를 비교·정리합니다. 연락은 {{phone}}이며, 카톡 상담도 가능합니다.</p>
 
 <h2>${keyword} 다음 단계 Private Inquiry</h2>
@@ -345,7 +345,7 @@ const FALLBACK_VARIANTS: FallbackBuilder[] = [
 
 <h2>${area}에서의 상담 진행 Consultation</h2>
 <p>${area}에서도 전화·카톡으로 일정 조율이 가능합니다. 원거리에 계시더라도 사진·기질 설명·케어 가이드를 공유하며 진행할 수 있습니다. ${keyword} 조건을 바탕으로 후보를 좁힌 뒤 상담 일정을 잡는 방식을 권합니다.</p>
-<p>{{brandName}} Maison de Coton은 프리미엄 품종의 책임을 중시하며, 대표 {{representative}} 상담을 통해 맞춰 드립니다.</p>
+<p>{{brandName}} Maison de Pomsky은 프리미엄 품종의 책임을 중시하며, 대표 {{representative}} 상담을 통해 맞춰 드립니다.</p>
 
 <h2>상담 연결 Contact</h2>
 <p>${keyword} 관련 궁금한 점이 있으면 {{phone}}로 문의해 주세요. {{brandName}}이 다음 단계(상담·매칭·애프터케어)를 함께 정리합니다.</p>
@@ -372,13 +372,13 @@ function generateFallbackContent(
   ];
   const descVariants = [
     (k: string) =>
-      `${buildSeoCorePhrase(k)} 안내. {{brandName}}에서 꼬똥드툴레아 프리미엄 상담을 진행합니다.`,
+      `${buildSeoCorePhrase(k)} 안내. {{brandName}}에서 폼스키 프리미엄 상담을 진행합니다.`,
     (k: string, r: string | null) =>
       `${r ? `${r} ` : ""}${extractServicePhrase(k, r)} 케어·분양 가이드. {{brandName}} · {{phone}}.`,
     (k: string) =>
       `{{brandName}} ${buildSeoCorePhrase(k)} — 품종·케어·상담. 전화 {{phone}}.`,
     (k: string) =>
-      `${buildSeoCorePhrase(k)} 관련 자주 묻는 내용 정리. {{brandName}} Maison de Coton.`,
+      `${buildSeoCorePhrase(k)} 관련 자주 묻는 내용 정리. {{brandName}} Maison de Pomsky.`,
   ];
 
   const tIdx = hashKeyword(keyword + "t") % titleVariants.length;

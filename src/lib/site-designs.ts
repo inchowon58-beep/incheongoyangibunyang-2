@@ -27,8 +27,8 @@ export const SITE_DESIGN_OPTIONS = [
   },
   {
     id: "m",
-    label: "M 디자인 · 메종드꼬똥",
-    description: "꼬똥드툴레아 럭셔리 · 소프트 라운드 · 품종소개·후기·카톡·전화",
+    label: "M 디자인 · 메종드폼스키",
+    description: "폼스키 럭셔리 · 소프트 라운드 · 품종소개·후기·카톡·전화",
   },
 ] as const;
 
@@ -45,5 +45,5 @@ export function parseSiteDesignId(value: unknown): SiteDesignId {
 
 export function siteDesignLabel(id: SiteDesignId | string | null | undefined): string {
   const found = SITE_DESIGN_OPTIONS.find((o) => o.id === id);
-  return found?.label ?? "M 디자인 · 메종드꼬똥";
+  return found?.label ?? "M 디자인 · 메종드폼스키";
 }

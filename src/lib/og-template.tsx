@@ -43,7 +43,7 @@ export function OgBrandedLayout({
             width: 72,
             height: 72,
             borderRadius: 999,
-            background: "linear-gradient(160deg, #FFE8DC 0%, #F5E6D3 100%)",
+            background: "linear-gradient(160deg, #E8E0D8 0%, #C9B8A8 100%)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -59,7 +59,7 @@ export function OgBrandedLayout({
             {brandName}
           </div>
           <div style={{ color: OG_COLORS.orangeLight, fontSize: 20, letterSpacing: "0.12em" }}>
-            Maison de Coton
+            Maison de Pomsky
           </div>
         </div>
       </div>
@@ -98,22 +98,22 @@ export function OgBrandedLayout({
       </div>
 
       <div style={{ color: OG_COLORS.gray, fontSize: 20, letterSpacing: "0.08em" }}>
-        Coton de Tuléar · Premium Companion
+        Pomsky · Premium Hybrid Companion
       </div>
     </div>
   );
 }
 
-/** 메종드꼬똥 — 귀여운 꼬똥(강아지) 파비콘 */
+/** 메종드폼스키 — 폼스키(포메×허스키) 파비콘 */
 export function FaviconLayout({ size }: { size: number }): ReactNode {
   const r = size >= 48 ? Math.round(size * 0.22) : Math.max(6, Math.round(size * 0.2));
-  const head = size * 0.52;
-  const earW = size * 0.28;
-  const earH = size * 0.34;
-  const eye = Math.max(2, size * 0.08);
-  const noseW = Math.max(3, size * 0.12);
-  const noseH = Math.max(2.5, size * 0.09);
-  const cheek = Math.max(3, size * 0.1);
+  const head = size * 0.5;
+  const earW = size * 0.24;
+  const earH = size * 0.36;
+  const eye = Math.max(2, size * 0.075);
+  const noseW = Math.max(3, size * 0.11);
+  const noseH = Math.max(2.5, size * 0.085);
+  const cheek = Math.max(3, size * 0.09);
 
   return (
     <div
@@ -126,20 +126,20 @@ export function FaviconLayout({ size }: { size: number }): ReactNode {
         position: "relative",
         overflow: "hidden",
         borderRadius: r,
-        background: "linear-gradient(160deg, #FFE8DC 0%, #FFF6F0 48%, #F5E6D3 100%)",
+        background: "linear-gradient(160deg, #D9CFC4 0%, #F0E8DF 48%, #B8A99A 100%)",
       }}
     >
-      {/* 왼쪽 귀 */}
+      {/* 왼쪽 귀 (허스키형 포인트) */}
       <div
         style={{
           position: "absolute",
           width: earW,
           height: earH,
-          left: size * 0.14,
-          top: size * 0.16,
-          borderRadius: `${earW}px ${earW}px ${earW * 0.45}px ${earW * 0.45}px`,
-          background: "linear-gradient(180deg, #FFFFFF 0%, #F7EFE6 100%)",
-          transform: "rotate(-18deg)",
+          left: size * 0.15,
+          top: size * 0.12,
+          borderRadius: `${earW * 0.55}px ${earW * 0.55}px ${earW * 0.2}px ${earW * 0.2}px`,
+          background: "linear-gradient(180deg, #C9B8A8 0%, #A89482 100%)",
+          transform: "rotate(-22deg)",
         }}
       />
       {/* 오른쪽 귀 */}
@@ -148,11 +148,11 @@ export function FaviconLayout({ size }: { size: number }): ReactNode {
           position: "absolute",
           width: earW,
           height: earH,
-          right: size * 0.14,
-          top: size * 0.16,
-          borderRadius: `${earW}px ${earW}px ${earW * 0.45}px ${earW * 0.45}px`,
-          background: "linear-gradient(180deg, #FFFFFF 0%, #F7EFE6 100%)",
-          transform: "rotate(18deg)",
+          right: size * 0.15,
+          top: size * 0.12,
+          borderRadius: `${earW * 0.55}px ${earW * 0.55}px ${earW * 0.2}px ${earW * 0.2}px`,
+          background: "linear-gradient(180deg, #C9B8A8 0%, #A89482 100%)",
+          transform: "rotate(22deg)",
         }}
       />
       {/* 얼굴 */}
@@ -161,13 +161,24 @@ export function FaviconLayout({ size }: { size: number }): ReactNode {
           position: "absolute",
           width: head,
           height: head,
-          top: size * 0.28,
+          top: size * 0.3,
           borderRadius: "50%",
-          background: "linear-gradient(165deg, #FFFFFF 0%, #FFF9F4 55%, #F3E7DB 100%)",
-          boxShadow: `0 ${Math.max(1, size * 0.03)}px ${Math.max(2, size * 0.08)}px rgba(176, 141, 106, 0.22)`,
+          background: "linear-gradient(165deg, #F5EFE8 0%, #E8DDD2 55%, #D4C4B4 100%)",
+          boxShadow: `0 ${Math.max(1, size * 0.03)}px ${Math.max(2, size * 0.08)}px rgba(80, 60, 40, 0.2)`,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+        }}
+      />
+      {/* 마스크 */}
+      <div
+        style={{
+          position: "absolute",
+          width: head * 0.55,
+          height: head * 0.45,
+          top: size * 0.42,
+          borderRadius: "50%",
+          background: "rgba(255,255,255,0.55)",
         }}
       />
       {/* 볼터치 L */}
@@ -179,8 +190,8 @@ export function FaviconLayout({ size }: { size: number }): ReactNode {
           left: size * 0.28,
           top: size * 0.58,
           borderRadius: "50%",
-          background: "#F8B8C0",
-          opacity: 0.55,
+          background: "#E8A898",
+          opacity: 0.4,
         }}
       />
       {/* 볼터치 R */}
@@ -192,20 +203,20 @@ export function FaviconLayout({ size }: { size: number }): ReactNode {
           right: size * 0.28,
           top: size * 0.58,
           borderRadius: "50%",
-          background: "#F8B8C0",
-          opacity: 0.55,
+          background: "#E8A898",
+          opacity: 0.4,
         }}
       />
-      {/* 눈 L */}
+      {/* 눈 L (블루 힌트) */}
       <div
         style={{
           position: "absolute",
           width: eye,
-          height: eye * 1.15,
-          left: size * 0.38,
+          height: eye * 1.1,
+          left: size * 0.37,
           top: size * 0.48,
           borderRadius: "50%",
-          background: "#3D322C",
+          background: "#4A6B8A",
         }}
       />
       {/* 눈 R */}
@@ -213,8 +224,8 @@ export function FaviconLayout({ size }: { size: number }): ReactNode {
         style={{
           position: "absolute",
           width: eye,
-          height: eye * 1.15,
-          right: size * 0.38,
+          height: eye * 1.1,
+          right: size * 0.37,
           top: size * 0.48,
           borderRadius: "50%",
           background: "#3D322C",
@@ -228,10 +239,9 @@ export function FaviconLayout({ size }: { size: number }): ReactNode {
           height: noseH,
           top: size * 0.58,
           borderRadius: "50%",
-          background: "#E8899A",
+          background: "#2C2622",
         }}
       />
-      {/* 하이라이트 (귀여움) */}
       {size >= 48 ? (
         <div
           style={{
@@ -241,7 +251,7 @@ export function FaviconLayout({ size }: { size: number }): ReactNode {
             top: size * 0.34,
             left: size * 0.4,
             borderRadius: "50%",
-            background: "rgba(255,255,255,0.85)",
+            background: "rgba(255,255,255,0.75)",
           }}
         />
       ) : null}

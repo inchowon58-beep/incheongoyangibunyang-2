@@ -18,11 +18,11 @@ export default function FooterMaison() {
           <div>
             <p className="maison-eyebrow text-[var(--maison-gold-soft)] mb-3">Contact</p>
             <h2 className="maison-display text-3xl sm:text-4xl text-white mb-2">
-              Maison de Coton
+              Maison de Pomsky
             </h2>
             <p className="text-white/70 text-lg mb-6">{site.companyName || site.brandName}</p>
             <p className="text-white/55 leading-relaxed max-w-md mb-8">
-              꼬똥드툴레아에 대한 궁금증, 분양 상담, 케어 문의 —
+              폼스키에 대한 궁금증, 분양 상담, 케어 문의 —
               편안하게 말씀해 주세요. 프라이빗하게 답변드립니다.
             </p>
 

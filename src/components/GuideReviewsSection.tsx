@@ -17,7 +17,7 @@ export default function GuideReviewsSection({ keyword, reviews, config }: Props)
       <p className="maison-eyebrow mb-2">Testimonials</p>
       <h2 className="maison-display text-2xl text-[var(--maison-ink)] mb-2">Family Reviews</h2>
       <p className="text-sm text-[var(--maison-muted)] mb-8">
-        {keyword} · 메종드꼬똥과 함께한 이야기
+        {keyword} · 메종드폼스키와 함께한 이야기
       </p>
       <div className="grid gap-5 sm:grid-cols-3">
         {reviews.map((r) => (
@@ -28,7 +28,7 @@ export default function GuideReviewsSection({ keyword, reviews, config }: Props)
             <div className="relative aspect-[4/3] overflow-hidden">
               <Image
                 src={getImageUrl(r.imageIndex ?? 1, config)}
-                alt={`${r.name} 님의 꼬똥드툴레아`}
+                alt={`${r.name} 님의 폼스키`}
                 fill
                 className="object-cover object-center"
                 sizes="(max-width: 640px) 100vw, 33vw"

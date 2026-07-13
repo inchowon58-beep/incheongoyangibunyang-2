@@ -13,7 +13,7 @@ export default async function HeroMaison() {
     <section className="maison-hero relative min-h-[92vh] flex items-end overflow-hidden">
       <Image
         src={getImageUrl(2, site)}
-        alt="꼬똥드툴레아 메종드꼬똥"
+        alt="폼스키 메종드폼스키"
         fill
         className="object-cover object-center"
         priority
@@ -23,20 +23,20 @@ export default async function HeroMaison() {
 
       <div className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 sm:pb-20 pt-32">
         <p className="maison-eyebrow text-white/80 mb-5 animate-maison-fade">
-          Coton de Tuléar · Since the Courts of Madagascar
+          Pomsky · Pomeranian × Siberian Husky
         </p>
         <h1 className="maison-display text-white max-w-3xl mb-4 animate-maison-rise">
           <span className="block text-[clamp(2.4rem,7vw,4.6rem)] leading-[1.05] font-normal">
-            Maison de Coton
+            Maison de Pomsky
           </span>
           <span className="block mt-3 text-[clamp(1.35rem,3.2vw,2rem)] font-light tracking-wide text-white/95">
-            꼬똥드툴레아 메종드꼬똥
+            폼스키 메종드폼스키
           </span>
         </h1>
         <p className="max-w-xl text-sm sm:text-base text-white/85 leading-relaxed mb-10 animate-maison-rise-delay">
-          왕실이 아끼던 코튼 코트의 반려견.
+          포메라니안과 시베리안 허스키가 만나 태어난 하이브리드견.
           <br className="hidden sm:block" />
-          역사와 품성, 그리고 품격 있는 분양까지 — 부드럽게 안내합니다.
+          기원과 품성, 그리고 품격 있는 분양까지 — 섬세하게 안내합니다.
         </p>
         <div className="flex flex-wrap gap-3 animate-maison-rise-delay-2">
           <Link href="/#breed" className="maison-btn-light">

@@ -49,7 +49,7 @@ function mergeTenantIntoConfig(
     content.description?.trim() ||
     content.aboutText?.trim() ||
     content.body?.trim().slice(0, 160) ||
-    `${brandName} 꼬똥드툴레아 프리미엄 분양`;
+    `${brandName} 폼스키 프리미엄 분양`;
 
   return {
     ...legacy,
@@ -100,9 +100,9 @@ export async function getResolvedSiteConfig(
   if (!isSupabaseConfigured() || !hostname) {
     const legacyUi = resolveTenantContentData(
       { siteDesign: "m" },
-      "maison-de-coton",
+      "maison-de-pomsky",
       baseConfig.brandName,
-      "꼬똥드툴레아,메종드꼬똥,꼬똥드툴레아분양,Coton de Tulear",
+      "폼스키,메종드폼스키,폼스키분양,Pomsky",
       baseConfig.description,
       baseConfig.imageCount
     );
@@ -124,9 +124,9 @@ export async function getResolvedSiteConfig(
     if (!tenant) {
       const legacyUi = resolveTenantContentData(
         { siteDesign: "m" },
-        hostname || "maison-de-coton",
+        hostname || "maison-de-pomsky",
         baseConfig.brandName,
-        "꼬똥드툴레아,메종드꼬똥,꼬똥드툴레아분양,Coton de Tulear",
+        "폼스키,메종드폼스키,폼스키분양,Pomsky",
         baseConfig.description,
         baseConfig.imageCount
       );

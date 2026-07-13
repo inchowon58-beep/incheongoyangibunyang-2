@@ -13,7 +13,7 @@ import { getResolvedSiteConfig } from "@/utils/siteConfig";
 
 export async function generateMetadata(): Promise<Metadata> {
   const config = await getSiteConfig();
-  const pageTitle = `${config.companyName || config.brandName} | Maison de Coton`;
+  const pageTitle = `${config.companyName || config.brandName} | Maison de Pomsky`;
   const browserTitle = buildTitleWithSeoSuffix(pageTitle, config.brandName);
   const suffixKeywords = pickSeoSuffixKeywords(config.brandName, 3);
 
@@ -25,11 +25,11 @@ export async function generateMetadata(): Promise<Metadata> {
       ogPath: "/opengraph-image",
       keywords: [
         config.brandName,
-        "꼬똥드툴레아",
-        "메종드꼬똥",
-        "꼬똥드툴레아 분양",
-        "Coton de Tulear",
-        "Maison de Coton",
+        "폼스키",
+        "메종드폼스키",
+        "폼스키 분양",
+        "Pomsky",
+        "Maison de Pomsky",
         ...suffixKeywords,
       ],
     }),

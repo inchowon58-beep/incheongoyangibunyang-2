@@ -36,12 +36,12 @@ export interface SiteConfig {
 }
 
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
-  brandName: "메종드꼬똥",
-  companyName: "꼬똥드툴레아 메종드꼬똥",
-  tagline: "Maison de Coton · Premium Coton de Tuléar",
+  brandName: "메종드폼스키",
+  companyName: "폼스키 메종드폼스키",
+  tagline: "Maison de Pomsky · Premium Pomsky",
   description:
-    "꼬똥드툴레아 메종드꼬똥은 왕실의 반려견으로 사랑받아 온 꼬똥드툴레아의 역사·성격·크기·털관리까지 소개하며, 품격 있는 분양을 안내하는 프리미엄 전문관입니다.",
-  url: "https://maisondecoton.vercel.app",
+    "메종드폼스키는 포메라니안과 시베리안 허스키의 교배로 태어난 하이브리드견 폼스키의 기원·성격·크기·케어까지 소개하며, 품격 있는 분양을 안내하는 프리미엄 전문관입니다.",
+  url: "https://incheongoyangibunyang-2.vercel.app",
   phone: "0505-464-1004",
   email: "",
   address: "",
@@ -50,8 +50,8 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
   placeUrl: "",
   kakaoUrl: "",
   representative: "",
-  imageCdn: "https://image.cattery.co.kr/coton",
-  imageCount: 30,
+  imageCdn: "https://image.cattery.co.kr/pomsky",
+  imageCount: 50,
   supportBase: "",
   supportExtra: "",
   supportMax: "",

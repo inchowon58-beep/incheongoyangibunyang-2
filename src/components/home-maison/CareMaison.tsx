@@ -13,18 +13,18 @@ export default async function CareMaison() {
           <div className="lg:col-span-4 lg:sticky lg:top-28">
             <p className="maison-eyebrow mb-4">Coat & Care</p>
             <h2 className="maison-display text-[clamp(1.75rem,4vw,2.5rem)] text-[var(--maison-ink)] mb-5 leading-snug">
-              털빠짐부터
+              코트부터
               <br />
               일상 케어까지
             </h2>
             <p className="text-[var(--maison-muted)] leading-relaxed mb-8">
               럭셔리한 외모는 올바른 관리에서 이어집니다. 분양 전, 케어의 현실을 함께
-              이해하시는 것이 메종드꼬똥의 철학입니다.
+              이해하시는 것이 메종드폼스키의 철학입니다.
             </p>
             <div className="maison-media relative aspect-[4/5] overflow-hidden rounded-[2rem] hidden lg:block">
               <Image
                 src={getImageUrl(17, site)}
-                alt="꼬똥드툴레아 코트 케어"
+                alt="폼스키 코트 케어"
                 fill
                 className="object-cover"
                 sizes="30vw"
@@ -54,7 +54,7 @@ export default async function CareMaison() {
             <div className="maison-media relative aspect-[16/10] overflow-hidden rounded-[2rem] lg:hidden mt-6">
               <Image
                 src={getImageUrl(17, site)}
-                alt="꼬똥드툴레아 코트 케어"
+                alt="폼스키 코트 케어"
                 fill
                 className="object-cover"
                 sizes="100vw"

@@ -5,7 +5,7 @@ import { getSiteConfig, resolveSeoPage, getPageImageUrl } from "@/lib/site-confi
 import { OG_SIZE } from "@/lib/og-template";
 import { stripSeoJargon, enforceExactKeyword, normalizeSeoKeyword } from "@/lib/seo-keyword";
 
-export const alt = "꼬똥드툴레아 메종드꼬똥 가이드";
+export const alt = "폼스키 메종드폼스키 가이드";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 
@@ -42,7 +42,7 @@ export default async function GuideOpenGraphImage({ params }: Props) {
           background: "#2c2622",
         }}
       >
-        {/* 페이지별 실제 꼬똥 사진 */}
+        {/* 페이지별 실제 폼스키 사진 */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={photoUrl}
@@ -88,7 +88,7 @@ export default async function GuideOpenGraphImage({ params }: Props) {
               textTransform: "uppercase",
             }}
           >
-            Maison de Coton
+            Maison de Pomsky
           </div>
           <div
             style={{

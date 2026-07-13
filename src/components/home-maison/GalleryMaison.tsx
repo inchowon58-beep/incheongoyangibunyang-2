@@ -14,7 +14,7 @@ export default async function GalleryMaison() {
           <h2 className="maison-display text-[clamp(1.75rem,4vw,2.6rem)] text-[var(--maison-ink)]">
             Soft Moments
           </h2>
-          <p className="mt-3 text-[var(--maison-muted)]">메종드꼬똥의 꼬똥드툴레아</p>
+          <p className="mt-3 text-[var(--maison-muted)]">메종드폼스키의 폼스키</p>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 items-stretch">
@@ -25,7 +25,7 @@ export default async function GalleryMaison() {
             >
               <Image
                 src={getImageUrl(idx, site)}
-                alt={`꼬똥드툴레아 갤러리 ${idx}`}
+                alt={`폼스키 갤러리 ${idx}`}
                 fill
                 className="object-cover object-center hover:scale-105 transition-transform duration-700 ease-out"
                 sizes="(max-width: 768px) 50vw, 33vw"

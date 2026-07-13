@@ -83,7 +83,7 @@ export default function TenantSitesClient() {
   const [markingNaverId, setMarkingNaverId] = useState<string | null>(null);
 
   const [showAdopt, setShowAdopt] = useState(false);
-  const [adoptName, setAdoptName] = useState("메종드꼬똥");
+  const [adoptName, setAdoptName] = useState("메종드폼스키");
   const [adoptHost, setAdoptHost] = useState("");
   const [adoptSlack, setAdoptSlack] = useState("");
   const [adoptNaverId, setAdoptNaverId] = useState("");
@@ -281,7 +281,7 @@ export default function TenantSitesClient() {
               </button>
               <h2 className="text-xl font-bold text-dark mb-1">기존 Vercel 사이트 편입</h2>
               <p className="text-sm text-gray-500 mb-5">
-                이미 배포된 <strong>메종드꼬똥</strong> 사이트를 등록 목록에만 추가합니다. M
+                이미 배포된 <strong>메종드폼스키</strong> 사이트를 등록 목록에만 추가합니다. M
                 디자인·홈 화면은 그대로 두고, 네이버 계정을 연결합니다. 슬랙은 선택 사항입니다.
                 (Vercel 재배포·도메인 재등록 없음)
               </p>

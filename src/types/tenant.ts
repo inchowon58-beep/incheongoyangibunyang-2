@@ -19,7 +19,7 @@ export interface TenantContentData {
   exposureMode?: "cpa" | "company";
   /** classic | modern | bold */
   designVariant?: "classic" | "modern" | "bold";
-  /** 사이트 상위 디자인 템플릿: a=기본, b=cleneo, c=agapet, d=mainecoon, m=메종드꼬똥 */
+  /** 사이트 상위 디자인 템플릿: a=기본, b=cleneo, c=agapet, d=mainecoon, m=메종드폼스키 */
   siteDesign?: "a" | "b" | "c" | "d" | "e" | "m";
   /** 생성 시 고정 난수 시드 — 레이아웃·이미지 재현용 */
   layoutSeed?: number;

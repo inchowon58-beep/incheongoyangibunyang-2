@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { getSiteConfig } from "@/lib/site-config";
 import { OgBrandedLayout, OG_SIZE } from "@/lib/og-template";
 
-export const alt = "꼬똥드툴레아 메종드꼬똥 · Maison de Coton";
+export const alt = "폼스키 메종드폼스키 · Maison de Pomsky";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 
@@ -13,9 +13,9 @@ export default async function OpenGraphImage() {
     (
       <OgBrandedLayout
         brandName={config.brandName}
-        title="꼬똥드툴레아 메종드꼬똥"
+        title="폼스키 메종드폼스키"
         subtitle={config.description.slice(0, 90)}
-        badge="Maison de Coton"
+        badge="Maison de Pomsky"
       />
     ),
     {

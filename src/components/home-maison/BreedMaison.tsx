@@ -14,7 +14,7 @@ export default async function BreedMaison() {
             <div className="maison-media relative aspect-[4/5] overflow-hidden rounded-[2rem]">
               <Image
                 src={getImageUrl(6, site)}
-                alt="꼬똥드툴레아 품종 소개"
+                alt="폼스키 품종 소개"
                 fill
                 className="object-cover"
                 sizes="(max-width: 1024px) 100vw, 40vw"
@@ -25,14 +25,14 @@ export default async function BreedMaison() {
           <div className="lg:col-span-7 order-1 lg:order-2">
             <p className="maison-eyebrow mb-4">The Breed</p>
             <h2 className="maison-display text-[clamp(1.75rem,4vw,2.75rem)] text-[var(--maison-ink)] mb-5 leading-snug">
-              꼬똥드툴레아,
+              폼스키,
               <br />
-              <em className="not-italic text-[var(--maison-gold)]">Coton de Tuléar</em>
+              <em className="not-italic text-[var(--maison-gold)]">Pomsky</em>
             </h2>
             <p className="text-[var(--maison-muted)] leading-relaxed mb-10 max-w-xl">
-              마다가스카르 툴레아르 항구에서 이름을 얻은 소형 반려견입니다. 솜처럼 부드러운
-              화이트 코트와 사람을 향한 온화한 시선으로, 전 세계 럭셔리 가정에서 사랑받아 온
-              품종이에요. 메종드꼬똥은 이 품종의 본질을 지키며 소개합니다.
+              포메라니안과 시베리안 허스키의 교배로 태어난 하이브리드견입니다. 작은 체구에
+              허스키의 마스크와 눈매, 포메라니안의 풍성한 코트가 어우러져 전 세계 애호가에게
+              사랑받아 온 품종이에요. 메종드폼스키는 이 본질을 지키며 소개합니다.
             </p>
 
             <div className="grid sm:grid-cols-2 gap-6">

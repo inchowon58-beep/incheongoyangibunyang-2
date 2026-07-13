@@ -14,7 +14,7 @@ export default async function AboutMaison() {
         <div className="relative overflow-hidden rounded-[2.5rem] maison-promo">
           <Image
             src={getImageUrl(22, site)}
-            alt="메종드꼬똥"
+            alt="메종드폼스키"
             fill
             className="object-cover opacity-40"
             sizes="100vw"
@@ -23,16 +23,16 @@ export default async function AboutMaison() {
 
           <div className="relative z-10 px-8 sm:px-12 lg:px-16 py-14 sm:py-20">
             <p className="maison-eyebrow text-[var(--maison-gold-soft)] mb-4">
-              Why Maison de Coton
+              Why Maison de Pomsky
             </p>
             <h2 className="maison-display text-[clamp(1.8rem,4vw,3rem)] text-white mb-4 max-w-2xl leading-snug">
               품격을 아는 이들을 위한
               <br />
-              꼬똥드툴레아 하우스
+              폼스키 하우스
             </h2>
             <p className="text-white/75 max-w-xl leading-relaxed mb-12">
-              메종드꼬똥은 단순한 분양처가 아닙니다. 품종의 역사를 이해하고, 가정에 맞는
-              인연을 잇는 프라이빗 컨설팅에 가깝습니다.
+              메종드폼스키는 단순한 분양처가 아닙니다. 하이브리드의 특성을 이해하고, 가정에
+              맞는 인연을 잇는 프라이빗 컨설팅에 가깝습니다.
             </p>
 
             <div className="grid sm:grid-cols-3 gap-6 mb-12">

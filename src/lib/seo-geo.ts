@@ -107,17 +107,17 @@ export function buildGuideSeoKeywords(exactKeyword: string, brandName: string): 
   const base = [
     exactKeyword,
     brandName,
-    "꼬똥드툴레아",
-    "메종드꼬똥",
-    "Coton de Tulear",
-    "Maison de Coton",
-    "꼬똥드툴레아 분양",
+    "폼스키",
+    "메종드폼스키",
+    "Pomsky",
+    "Maison de Pomsky",
+    "폼스키 분양",
     "프리미엄 반려견",
   ];
   if (region) {
     base.push(
-      `${region} 꼬똥드툴레아`,
-      `${region} 꼬똥분양`,
+      `${region} 폼스키`,
+      `${region} 폼스키분양`,
       `${region} 반려견분양`
     );
   }
