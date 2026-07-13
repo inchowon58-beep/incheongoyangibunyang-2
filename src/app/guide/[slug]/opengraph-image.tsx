@@ -4,7 +4,7 @@ import { resolvePageByKey } from "@/lib/pages-resolver";
 import { getSiteConfig, resolveSeoPage } from "@/lib/site-config";
 import { OgBrandedLayout, OG_SIZE } from "@/lib/og-template";
 
-export const alt = "부동산 SEO 가이드";
+export const alt = "꼬똥드툴레아 메종드꼬똥 가이드";
 export const size = OG_SIZE;
 export const contentType = "image/png";
 

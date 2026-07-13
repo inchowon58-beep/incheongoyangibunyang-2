@@ -19,6 +19,7 @@ import {
   buildSeoBrowserTitle,
   enforceExactKeyword,
   normalizeSeoKeyword,
+  stripSeoJargon,
 } from "@/lib/seo-keyword";
 import GuideReviewsSection from "@/components/GuideReviewsSection";
 import { getSeoReviewsForKeyword } from "@/lib/seo-reviews";
@@ -59,10 +60,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const resolved = resolveSeoPage(page, config);
   const exactKeyword = normalizeSeoKeyword(page.keyword);
-  const browserTitle = buildSeoBrowserTitle(
-    enforceExactKeyword(resolved.title, exactKeyword),
-    config.brandName,
-    exactKeyword || page.slug
+  const browserTitle = stripSeoJargon(
+    buildSeoBrowserTitle(
+      enforceExactKeyword(resolved.title, exactKeyword),
+      config.brandName,
+      exactKeyword || page.slug
+    )
   );
   const geo = resolveSeoGeoFromKeyword(exactKeyword);
   const seed = page.slug || exactKeyword;
@@ -71,8 +74,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     ...buildPageMetadata(config, {
-      title: enforceExactKeyword(resolved.title, exactKeyword),
-      description: enforceExactKeyword(resolved.description, exactKeyword),
+      title: stripSeoJargon(enforceExactKeyword(resolved.title, exactKeyword)),
+      description: stripSeoJargon(
+        enforceExactKeyword(resolved.description, exactKeyword)
+      ),
       path: guidePageUrl(page.slug),
       ogPath: `/guide/${page.slug}/opengraph-image`,
       type: "article",
@@ -98,9 +103,13 @@ export default async function GuidePage({ params }: Props) {
 
   const exactKeyword = normalizeSeoKeyword(page.keyword);
   const resolved = resolveSeoPage(page, config);
-  const title = enforceExactKeyword(resolved.title, exactKeyword);
-  const description = enforceExactKeyword(resolved.description, exactKeyword);
-  const contentHtml = enforceExactKeyword(resolved.content, exactKeyword);
+  const title = stripSeoJargon(enforceExactKeyword(resolved.title, exactKeyword));
+  const description = stripSeoJargon(
+    enforceExactKeyword(resolved.description, exactKeyword)
+  );
+  const contentHtml = stripSeoJargon(
+    enforceExactKeyword(resolved.content, exactKeyword)
+  );
   const geo = resolveSeoGeoFromKeyword(exactKeyword);
   const currentRegion = extractRegionFromKeyword(exactKeyword) || geo.placename;
 
@@ -151,7 +160,7 @@ export default async function GuidePage({ params }: Props) {
         />
         <div className="maison-hero-veil absolute inset-0" aria-hidden />
         <div className="relative z-10 w-full max-w-5xl mx-auto px-6 pb-14 pt-28 sm:pb-18">
-          <p className="maison-eyebrow text-white/80 mb-3">Maison Guide · SEO</p>
+          <p className="maison-eyebrow text-white/80 mb-3">Maison Guide</p>
           <p className="text-[var(--maison-gold-soft)] text-xs sm:text-sm tracking-wide mb-3">
             {exactKeyword}
           </p>

@@ -16,7 +16,7 @@ export default function RelatedKeywordPagesSection({ links }: Props) {
         More Stories
       </h2>
       <p className="text-sm text-[var(--maison-muted)] mb-6">
-        발행된 SEO 페이지 중 랜덤 {links.length}개 — 좌우로 스크롤하세요
+        함께 읽어보면 좋은 안내 {links.length}개 — 좌우로 스크롤하세요
       </p>
       <div className="relative -mx-1">
         <div className="flex gap-4 overflow-x-auto pb-3 px-1 scroll-smooth snap-x snap-mandatory [scrollbar-width:thin]">

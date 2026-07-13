@@ -84,7 +84,7 @@ export function buildSeoCorePhrase(keyword: string): string {
 export function polishSeoText(text: string, region: string | null, exactKeyword?: string): string {
   let result = dedupeRegionInText(text, region);
   if (exactKeyword) result = enforceExactKeyword(result, exactKeyword);
-  return result;
+  return stripSeoJargon(result);
 }
 
 export function polishSeoHtmlContent(html: string, keyword: string): string {
@@ -93,7 +93,7 @@ export function polishSeoHtmlContent(html: string, keyword: string): string {
   // HTML 전체를 compact 재조립하지 않음 — 키워드만 원본으로 강제
   let result = dedupeRegionInText(html, region);
   result = enforceExactKeyword(result, exact);
-  return result;
+  return stripSeoJargon(result);
 }
 
 /** 제목에서 상호명 제거 (메타 template에서 1회만 붙임) */
@@ -170,16 +170,31 @@ export function buildSeoBrowserTitle(pageTitle: string, brandName: string, seed?
 
 const TITLE_TEMPLATES: ((phrase: string, region: string | null) => string)[] = [
   (phrase) => phrase,
-  (phrase, region) => `${phrase} 중개 안내`,
-  (phrase, region) => `${phrase} 상담 가이드`,
-  (phrase, region) => `${phrase} — 실무 체크`,
+  (phrase) => `${phrase} 품종 가이드`,
+  (phrase) => `${phrase} 케어 안내`,
+  (phrase) => `${phrase} — Soft Guide`,
   (phrase, region) => `${region ? `${region} ` : ""}${phrase}`.trim(),
   (phrase) => `${phrase} 알아보기`,
   (phrase) => `${phrase} 핵심 정리`,
   (phrase) => `${phrase} 자주 묻는 내용`,
-  (phrase) => `${phrase} 계약 전 안내`,
-  (phrase) => `${phrase} 지역 정보`,
+  (phrase) => `${phrase} 분양 전 안내`,
+  (phrase) => `${phrase} 생활 가이드`,
 ];
+
+/** 공개 페이지에 노출되면 안 되는 SEO·내부 용어 제거 */
+const PUBLIC_JARGON_RE =
+  /\s*(SEO|seo|S\.E\.O|검색\s*최적화|콘텐츠\s*최적화|노출\s*최적화|최적화\s*문서|최적화)\s*/gi;
+
+export function stripSeoJargon(text: string): string {
+  if (!text) return text;
+  return text
+    .replace(PUBLIC_JARGON_RE, " ")
+    .replace(/\s*[·|]\s*[·|]/g, " · ")
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s*[·|-]\s*$/g, "")
+    .replace(/^\s*[·|-]\s*/g, "")
+    .trim();
+}
 
 export function finalizeSeoTitle(title: string, keyword: string): string {
   const normalizedKeyword = normalizeSeoKeyword(keyword);
@@ -190,10 +205,12 @@ export function finalizeSeoTitle(title: string, keyword: string): string {
     .replace(/\{\{companyName\}\}/gi, "")
     .replace(/\s*[|·-]\s*$/g, "")
     .trim();
+  result = stripSeoJargon(result);
   result = dedupeRegionInText(result, region);
   result = enforceExactKeyword(result, normalizedKeyword);
   result = ensureRegionInTitle(result, normalizedKeyword, region);
   result = enforceExactKeyword(result, normalizedKeyword);
+  result = stripSeoJargon(result);
   return result.slice(0, 55);
 }
 
