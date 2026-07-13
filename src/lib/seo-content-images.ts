@@ -75,16 +75,80 @@ function buildRowSizes(seed: string, total: number): number[] {
   return rows;
 }
 
-function buildSeoImageFigure(url: string, alt: string): string {
-  return `<figure class="seo-content-image"><div class="seo-content-image__media"><img src="${url}" alt="${alt.replace(/"/g, "&quot;")}" loading="lazy" width="800" height="500" /></div><figcaption>${alt}</figcaption></figure>`;
+function buildSeoImageFigure(url: string, alt: string, caption: string): string {
+  return `<figure class="seo-content-image"><div class="seo-content-image__media"><img src="${url}" alt="${alt.replace(/"/g, "&quot;")}" loading="lazy" width="800" height="500" /></div><figcaption>${caption}</figcaption></figure>`;
 }
 
-function buildGalleryRow(urls: string[], keyword: string, startNum: number): string {
+/** 화면용 캡션 — 번호·「관련 안내 이미지」 표현 없이 고급 톤 */
+const CAPTION_PHRASES = [
+  "Soft Portrait",
+  "Quiet Elegance",
+  "Cotton Coat Moment",
+  "Heritage Companion",
+  "Maison Softness",
+  "Gentle Presence",
+  "Ivory Charm",
+  "Warm Afternoon",
+  "Tender Glance",
+  "Cloud-like Coat",
+  "Private Moment",
+  "Royal Softness",
+  "Cozy Stillness",
+  "Elegant Companion",
+  "Whisper of Cotton",
+  "Homebound Grace",
+  "Petite Royalty",
+  "Velvet Gaze",
+] as const;
+
+const CAPTION_KO = [
+  "포근한 순간",
+  "고요한 우아함",
+  "코튼 코트의 감촉",
+  "왕실의 온기",
+  "메종의 여유",
+  "부드러운 시선",
+  "아이보리의 품격",
+  "따뜻한 오후",
+  "다정한 눈빛",
+  "구름 같은 코트",
+  "프라이빗 모먼트",
+  "로열 소프트니스",
+  "아늑한 고요",
+  "우아한 동행",
+  "코튼의 속삭임",
+  "집에서의 품격",
+  "작은 왕실견",
+  "벨벳 같은 눈빛",
+] as const;
+
+function buildCaption(keyword: string, seed: string, index: number): {
+  alt: string;
+  caption: string;
+} {
+  const n = CAPTION_PHRASES.length;
+  const pick = (hashSeed(`${seed}:cap:${index}`) + index * 7) % n;
+  const en = CAPTION_PHRASES[pick];
+  const ko = CAPTION_KO[pick];
+  // 화면: 한국어 + 영문 / alt: 키워드 포함(SEO)
+  return {
+    caption: `${ko} · ${en}`,
+    alt: `${keyword} — ${ko}`,
+  };
+}
+
+function buildGalleryRow(
+  urls: string[],
+  keyword: string,
+  seed: string,
+  startNum: number
+): string {
   const cols = urls.length;
   const figures = urls
-    .map((url, i) =>
-      buildSeoImageFigure(url, `${keyword} 관련 안내 이미지 ${startNum + i}`)
-    )
+    .map((url, i) => {
+      const { alt, caption } = buildCaption(keyword, seed, startNum + i);
+      return buildSeoImageFigure(url, alt, caption);
+    })
     .join("");
   return `<div class="seo-image-row seo-image-row--${cols}">${figures}</div>`;
 }
@@ -101,7 +165,7 @@ function buildGalleryRows(
 
   for (const size of rowSizes) {
     const slice = urls.slice(offset, offset + size);
-    rows.push(buildGalleryRow(slice, keyword, figNum));
+    rows.push(buildGalleryRow(slice, keyword, seed, figNum));
     offset += size;
     figNum += size;
   }
