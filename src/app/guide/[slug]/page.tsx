@@ -12,8 +12,10 @@ import { buildDefaultFaqs } from "@/lib/gemini";
 import { resolveSeoPage, phoneToTel, getPageImageUrl } from "@/lib/site-config";
 import { getSeoContentImageUrls } from "@/lib/seo-content-images";
 import { extractRegionFromKeyword } from "@/lib/region-parse";
+import { getNearbySubRegionLinks } from "@/lib/nearby-regions";
 import { getRelatedKeywordPageLinks } from "@/lib/related-keyword-pages";
 import RelatedKeywordPagesSection from "@/components/RelatedKeywordPagesSection";
+import NearbyRegionsSection from "@/components/NearbyRegionsSection";
 import { showCompanyContact } from "@/lib/exposure-mode";
 import {
   buildSeoBrowserTitle,
@@ -112,12 +114,10 @@ export default async function GuidePage({ params }: Props) {
   const geo = resolveSeoGeoFromKeyword(exactKeyword);
   const currentRegion = extractRegionFromKeyword(exactKeyword) || geo.placename;
 
-  const relatedKeywordLinks = await getRelatedKeywordPageLinks(
-    page.slug,
-    exactKeyword,
-    30,
-    config
-  );
+  const [relatedKeywordLinks, nearbySubRegions] = await Promise.all([
+    getRelatedKeywordPageLinks(page.slug, exactKeyword, 30, config),
+    getNearbySubRegionLinks(currentRegion, page.slug, exactKeyword),
+  ]);
 
   const faqs = (
     resolved.faqs?.length >= 2
@@ -235,6 +235,11 @@ export default async function GuidePage({ params }: Props) {
           <GuideReviewsSection keyword={exactKeyword} reviews={reviews} config={config} />
 
           <RelatedKeywordPagesSection links={relatedKeywordLinks} />
+
+          <NearbyRegionsSection
+            cityLabel={nearbySubRegions.cityLabel}
+            regions={nearbySubRegions.regions}
+          />
 
           <div className="mt-12 maison-soft-block rounded-[1.75rem] p-8 text-center">
             <p className="maison-eyebrow mb-2">Private Inquiry</p>

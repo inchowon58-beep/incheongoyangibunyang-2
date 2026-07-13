@@ -9,26 +9,29 @@ interface Props {
 export default function NearbyRegionsSection({ cityLabel, regions }: Props) {
   if (regions.length === 0) return null;
 
-  const title = cityLabel ? `${cityLabel} 인근 지역` : "근방 지역";
-
   return (
-    <section className="mt-10 bg-white rounded-2xl p-6 lg:p-8 shadow-sm">
-      <h2 className="text-xl font-bold text-dark mb-1">{title}</h2>
-      <p className="text-xs text-gray-500 mb-4">
-        같은 지역 안에서 자주 찾는 동·읍·면입니다.
+    <section className="mt-14 pt-10 border-t border-[var(--maison-line)]">
+      <p className="maison-eyebrow mb-2">Nearby Areas</p>
+      <h2 className="maison-display text-2xl text-[var(--maison-ink)] mb-2">
+        근방지역에서도 많이 알아보셨네요
+      </h2>
+      <p className="text-sm text-[var(--maison-muted)] mb-6">
+        {cityLabel
+          ? `${cityLabel} 인근 구·동 단위로 함께 찾아보시는 분들이 많습니다.`
+          : "인근 구·동 단위로 함께 찾아보시는 분들이 많습니다."}
       </p>
-      <ul className="flex flex-wrap gap-2">
+      <ul className="flex flex-wrap gap-2.5">
         {regions.map((item) => (
           <li key={item.region}>
             {item.href ? (
               <Link
                 href={item.href}
-                className="inline-block px-4 py-2 rounded-full border border-gray-200 text-sm font-medium text-dark hover:border-orange hover:text-orange transition"
+                className="inline-flex items-center px-4 py-2.5 rounded-full border border-[var(--maison-line)] bg-[var(--maison-card)] text-sm font-medium text-[var(--maison-ink)] hover:border-[var(--maison-gold)] hover:text-[var(--maison-gold)] transition"
               >
                 {item.region}
               </Link>
             ) : (
-              <span className="inline-block px-4 py-2 rounded-full border border-gray-100 bg-gray-bg text-sm font-medium text-gray-600">
+              <span className="inline-flex items-center px-4 py-2.5 rounded-full border border-[var(--maison-line)] bg-[var(--maison-mist)] text-sm font-medium text-[var(--maison-muted)]">
                 {item.region}
               </span>
             )}

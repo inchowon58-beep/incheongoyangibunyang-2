@@ -87,13 +87,19 @@ export interface NearbyRegionLink {
   href: string | null;
 }
 
-/** 키워드 시·군·구 안 동·읍·면 근방 (페이지 있으면 링크) */
+/** 키워드 시·군·구 안 동·읍·면 근방 5곳 (페이지 있으면 링크) */
 export async function getNearbySubRegionLinks(
   currentRegion: string | null,
   currentSlug: string,
   _currentKeyword: string
 ): Promise<{ cityLabel: string | null; regions: NearbyRegionLink[] }> {
-  const names = getSubRegionNames(currentRegion, 5);
+  let names = getSubRegionNames(currentRegion, 5);
+
+  // 동·읍·면 맵이 없으면 인접 시·군·구로 5곳 채움
+  if (names.length === 0 && currentRegion) {
+    names = getNearbyRegionNames(currentRegion, currentSlug || currentRegion, 5);
+  }
+
   if (names.length === 0) {
     return { cityLabel: currentRegion, regions: [] };
   }
@@ -101,7 +107,7 @@ export async function getNearbySubRegionLinks(
   const { pages } = await resolvePagesContext();
   const cityLabel = currentRegion ? normalizeCityKey(currentRegion) : null;
 
-  const regions = names.map((area) => {
+  const regions = names.slice(0, 5).map((area) => {
     const match = pages.find((p) => {
       if (p.slug === currentSlug) return false;
       const compact = p.keyword.replace(/\s/g, "");
