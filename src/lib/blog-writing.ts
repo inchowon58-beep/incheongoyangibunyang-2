@@ -27,6 +27,12 @@ export interface BlogWritingPublicConfig {
   windowStartHour: number;
   /** 발행 시간대 종료 (0~23, KST) */
   windowEndHour: number;
+  /** 블로그 사진 CDN 폴더 URL */
+  imageCdn: string;
+  /** CDN 이미지 개수 (01.webp ~) */
+  imageCount: number;
+  /** 사이트 기본 CDN (비우면 이 값 사용 가능) */
+  defaultImageCdn: string;
   enabled: boolean;
   keywordsText: string;
   keywordQueueCount: number;
@@ -155,6 +161,30 @@ function rolloverDailyCounts(site: BlogWritingSiteRecord): BlogWritingSiteRecord
   return { ...site, publishedDate: today, publishedToday: 0 };
 }
 
+function normalizeImageCdn(url: string): string {
+  const trimmed = url.trim();
+  if (!trimmed) return "";
+  return trimmed.replace(/\/?$/, "/");
+}
+
+function resolveImageSettings(
+  site: { imageCdn?: string; imageCount?: number },
+  defaults: { imageCdn: string; imageCount: number }
+): { imageCdn: string; imageCount: number } {
+  const cdn = normalizeImageCdn(site.imageCdn || "") || normalizeImageCdn(defaults.imageCdn);
+  const countRaw = site.imageCount ?? defaults.imageCount;
+  const imageCount =
+    Number.isFinite(countRaw) && countRaw > 0 ? Math.min(500, Math.floor(countRaw)) : 50;
+  return { imageCdn: cdn, imageCount };
+}
+
+/** VM용 — CDN 폴더에서 N번째 이미지 URL (01.webp 규칙) */
+export function buildBlogImageUrl(imageCdn: string, index: number): string {
+  const base = imageCdn.replace(/\/$/, "");
+  const num = Math.max(1, Math.floor(index));
+  return `${base}/${String(num).padStart(2, "0")}.webp`;
+}
+
 export async function getBlogWritingContext(): Promise<{
   siteKey: string;
   siteUrl: string;
@@ -162,6 +192,8 @@ export async function getBlogWritingContext(): Promise<{
   phone: string;
   linkedNaverId: string | null;
   tenantId: string | null;
+  defaultImageCdn: string;
+  defaultImageCount: number;
 }> {
   const { config, tenant, isTenant, hostname } = await getResolvedSiteConfig();
   const siteKey = resolveSiteKey(isTenant && tenant ? tenant.id : null, hostname);
@@ -183,16 +215,20 @@ export async function getBlogWritingContext(): Promise<{
     phone: config.phone,
     linkedNaverId,
     tenantId: tenant?.id ?? null,
+    defaultImageCdn: normalizeImageCdn(config.imageCdn || ""),
+    defaultImageCount: Math.max(1, config.imageCount || 50),
   };
 }
 
 function toPublic(
   site: BlogWritingSiteRecord,
-  linkedNaverId: string | null
+  linkedNaverId: string | null,
+  defaults: { imageCdn: string; imageCount: number }
 ): BlogWritingPublicConfig {
   const rolled = rolloverDailyCounts(site);
   const dailyCount = Math.max(0, rolled.dailyCount || 0);
   const { start, end } = resolveWindowHours(rolled);
+  const images = resolveImageSettings(rolled, defaults);
   return {
     siteKey: rolled.siteKey,
     siteUrl: rolled.siteUrl,
@@ -206,6 +242,9 @@ function toPublic(
     publishMode: rolled.publishMode,
     windowStartHour: start,
     windowEndHour: end,
+    imageCdn: images.imageCdn,
+    imageCount: images.imageCount,
+    defaultImageCdn: defaults.imageCdn,
     enabled: rolled.enabled,
     keywordsText: rolled.keywordQueue.join("\n"),
     keywordQueueCount: rolled.keywordQueue.length,
@@ -233,6 +272,8 @@ function defaultSiteRecord(
     publishMode: "random",
     windowStartHour: 9,
     windowEndHour: 21,
+    imageCdn: ctx.defaultImageCdn,
+    imageCount: ctx.defaultImageCount,
     enabled: false,
     keywordQueue: [],
     publishedToday: 0,
@@ -245,13 +286,17 @@ export async function getPublicBlogWritingConfig(): Promise<BlogWritingPublicCon
   const ctx = await getBlogWritingContext();
   const store = await getBlogWritingStore();
   const existing = store.sites.find((s) => s.siteKey === ctx.siteKey);
+  const defaults = {
+    imageCdn: ctx.defaultImageCdn,
+    imageCount: ctx.defaultImageCount,
+  };
   const site = rolloverDailyCounts({
     ...(existing || defaultSiteRecord(ctx)),
     siteUrl: ctx.siteUrl,
     brandName: ctx.brandName,
     phone: ctx.phone,
   });
-  return toPublic(site, ctx.linkedNaverId);
+  return toPublic(site, ctx.linkedNaverId, defaults);
 }
 
 export interface SaveBlogWritingInput {
@@ -264,6 +309,8 @@ export interface SaveBlogWritingInput {
   publishMode?: BlogPublishMode;
   windowStartHour?: number;
   windowEndHour?: number;
+  imageCdn?: string;
+  imageCount?: number;
   enabled?: boolean;
   keywordsText?: string;
   appendKeywords?: boolean;
@@ -289,6 +336,11 @@ export async function saveBlogWritingConfig(
     idx >= 0 ? store.sites[idx] : defaultSiteRecord(ctx)
   );
   const prevWindow = resolveWindowHours(prev);
+  const defaults = {
+    imageCdn: ctx.defaultImageCdn,
+    imageCount: ctx.defaultImageCount,
+  };
+  const prevImages = resolveImageSettings(prev, defaults);
 
   let keywordQueue = prev.keywordQueue;
   if (typeof input.keywordsText === "string") {
@@ -297,6 +349,15 @@ export async function saveBlogWritingConfig(
       ? [...prev.keywordQueue, ...parsed.filter((k) => !prev.keywordQueue.includes(k))]
       : parsed;
   }
+
+  const nextImageCdn =
+    typeof input.imageCdn === "string"
+      ? normalizeImageCdn(input.imageCdn) || prevImages.imageCdn
+      : prevImages.imageCdn;
+  const nextImageCount =
+    input.imageCount !== undefined
+      ? Math.max(1, Math.min(500, Math.floor(Number(input.imageCount) || prevImages.imageCount)))
+      : prevImages.imageCount;
 
   const next: BlogWritingSiteRecord = {
     ...prev,
@@ -331,6 +392,8 @@ export async function saveBlogWritingConfig(
       input.windowEndHour !== undefined
         ? parseHourInput(input.windowEndHour, prevWindow.end)
         : prevWindow.end,
+    imageCdn: nextImageCdn,
+    imageCount: nextImageCount,
     enabled: typeof input.enabled === "boolean" ? input.enabled : prev.enabled,
     keywordQueue,
     updatedAt: new Date().toISOString(),
@@ -350,7 +413,7 @@ export async function saveBlogWritingConfig(
     jobs: store.jobs,
   };
   await saveBlogWritingStore(data);
-  return toPublic(next, ctx.linkedNaverId);
+  return toPublic(next, ctx.linkedNaverId, defaults);
 }
 
 /** 오늘 남은 한도만큼 키워드를 job으로 발행(배정) */
@@ -377,6 +440,10 @@ export async function ensureTodayBlogJobs(siteKey?: string): Promise<number> {
     const rest = site.keywordQueue.slice(take);
     const now = new Date().toISOString();
     const { start, end } = resolveWindowHours(site);
+    const images = resolveImageSettings(site, {
+      imageCdn: site.imageCdn || "",
+      imageCount: site.imageCount || 50,
+    });
 
     for (let j = 0; j < selected.length; j++) {
       const keyword = selected[j];
@@ -393,6 +460,8 @@ export async function ensureTodayBlogJobs(siteKey?: string): Promise<number> {
         publishMode: site.publishMode,
         windowStartHour: start,
         windowEndHour: end,
+        imageCdn: images.imageCdn,
+        imageCount: images.imageCount,
         scheduledAt: scheduleInPublishWindow(site.publishMode, start, end, j, take),
         status: "pending",
         createdAt: now,
@@ -434,6 +503,11 @@ export interface BlogWorkerJobPayload {
   publishMode: BlogPublishMode;
   windowStartHour: number;
   windowEndHour: number;
+  /** 사진 폴더 예: https://image.cattery.co.kr/pomsky/ */
+  imageCdn: string;
+  imageCount: number;
+  /** 랜덤 1장 예시 URL (VM이 그대로 써도 됨) */
+  sampleImageUrl: string;
   scheduledAt: string | null;
   siteLink: string;
 }
@@ -471,6 +545,14 @@ export async function getPendingBlogJobsForNaverId(
         windowStartHour: j.windowStartHour ?? site?.windowStartHour,
         windowEndHour: j.windowEndHour ?? site?.windowEndHour,
       });
+      const images = resolveImageSettings(
+        {
+          imageCdn: j.imageCdn ?? site?.imageCdn,
+          imageCount: j.imageCount ?? site?.imageCount,
+        },
+        { imageCdn: site?.imageCdn || "", imageCount: site?.imageCount || 50 }
+      );
+      const sampleIndex = (Math.abs(hashKeyword(j.keyword)) % images.imageCount) + 1;
       return {
         id: j.id,
         siteUrl: j.siteUrl,
@@ -485,10 +567,22 @@ export async function getPendingBlogJobsForNaverId(
         publishMode: j.publishMode,
         windowStartHour: window.start,
         windowEndHour: window.end,
+        imageCdn: images.imageCdn,
+        imageCount: images.imageCount,
+        sampleImageUrl: buildBlogImageUrl(images.imageCdn, sampleIndex),
         scheduledAt: j.scheduledAt,
         siteLink: j.siteUrl,
       };
     });
+}
+
+function hashKeyword(keyword: string): number {
+  let h = 0;
+  for (let i = 0; i < keyword.length; i++) {
+    h = (h << 5) - h + keyword.charCodeAt(i);
+    h |= 0;
+  }
+  return h;
 }
 
 export async function reportBlogJobResults(

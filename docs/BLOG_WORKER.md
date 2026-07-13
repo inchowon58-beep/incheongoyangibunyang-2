@@ -53,6 +53,13 @@ POST /api/blog-worker/jobs
 
 VM은 `scheduledAt` 이전에는 발행을 미루면 됩니다. 응답에 `windowStartHour` / `windowEndHour`도 포함됩니다.
 
+### 사진
+
+- `imageCdn` 예: `https://image.cattery.co.kr/pomsky/`
+- 파일 규칙: `{imageCdn}01.webp` … `{imageCdn}{imageCount}.webp` (두 자리 zero-pad)
+- VM: `imageCdn`에서 랜덤(또는 `sampleImageUrl`)으로 다운로드해 본문에 첨부
+- 여러 장 필요 시 `1..imageCount` 중 중복 없이 선택
+
 ---
 
 ## 3. API
@@ -79,6 +86,10 @@ GET /api/blog-worker/jobs?naverId=abc123
 | `brandName` | 상호 |
 | `publishMode` | `random` \| `continuous` |
 | `scheduledAt` | 권장 발행 시각 (ISO) |
+| `windowStartHour` / `windowEndHour` | 한국시간 발행 구간 |
+| `imageCdn` | 사진 폴더 (예: `https://image.cattery.co.kr/pomsky/`) |
+| `imageCount` | 폴더 내 이미지 수 (`01.webp` ~) |
+| `sampleImageUrl` | 키워드 기준 예시 1장 URL (바로 다운로드해도 됨) |
 | `naverPassword` | 웹에 저장된 경우만 |
 
 ### 클레임 (선택)

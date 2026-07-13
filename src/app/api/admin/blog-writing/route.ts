@@ -64,6 +64,11 @@ export async function PUT(req: NextRequest) {
         typeof body.windowEndHour === "number" || typeof body.windowEndHour === "string"
           ? Number(body.windowEndHour)
           : undefined,
+      imageCdn: typeof body.imageCdn === "string" ? body.imageCdn : undefined,
+      imageCount:
+        typeof body.imageCount === "number" || typeof body.imageCount === "string"
+          ? Number(body.imageCount)
+          : undefined,
       enabled: typeof body.enabled === "boolean" ? body.enabled : undefined,
       keywordsText:
         typeof body.keywordsText === "string" ? body.keywordsText : undefined,

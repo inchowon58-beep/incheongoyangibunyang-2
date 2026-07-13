@@ -16,6 +16,9 @@ interface BlogConfig {
   publishMode: "random" | "continuous";
   windowStartHour: number;
   windowEndHour: number;
+  imageCdn: string;
+  imageCount: number;
+  defaultImageCdn: string;
   enabled: boolean;
   keywordsText: string;
   keywordQueueCount: number;
@@ -37,6 +40,8 @@ const emptyForm: {
   publishMode: "random" | "continuous";
   windowStartHour: number;
   windowEndHour: number;
+  imageCdn: string;
+  imageCount: number;
   enabled: boolean;
   keywordsText: string;
 } = {
@@ -48,6 +53,8 @@ const emptyForm: {
   publishMode: "random",
   windowStartHour: 9,
   windowEndHour: 21,
+  imageCdn: "",
+  imageCount: 50,
   enabled: false,
   keywordsText: "",
 };
@@ -81,6 +88,8 @@ export default function BlogWritingClient() {
           publishMode: c.publishMode || "random",
           windowStartHour: c.windowStartHour ?? 9,
           windowEndHour: c.windowEndHour ?? 21,
+          imageCdn: c.imageCdn || c.defaultImageCdn || "",
+          imageCount: c.imageCount || 50,
           enabled: !!c.enabled,
           keywordsText: c.keywordsText || "",
         });
@@ -130,6 +139,8 @@ export default function BlogWritingClient() {
             publishMode: c.publishMode,
             windowStartHour: c.windowStartHour ?? 9,
             windowEndHour: c.windowEndHour ?? 21,
+            imageCdn: c.imageCdn || "",
+            imageCount: c.imageCount || 50,
             enabled: c.enabled,
             keywordsText: c.keywordsText,
           }));
@@ -355,6 +366,58 @@ export default function BlogWritingClient() {
                     : ""}{" "}
                   랜덤/연속 모두 이 시간대 안에서만 스케줄됩니다.
                 </p>
+              </div>
+
+              <div className="grid sm:grid-cols-[1fr_120px] gap-4">
+                <div>
+                  <label className={labelClass}>사진 CDN 폴더 주소</label>
+                  <input
+                    className={inputClass}
+                    value={form.imageCdn}
+                    onChange={(e) => setForm((f) => ({ ...f, imageCdn: e.target.value }))}
+                    placeholder="https://image.cattery.co.kr/pomsky/"
+                  />
+                  <p className="text-[11px] text-gray-400 mt-1.5 leading-relaxed">
+                    폴더 URL을 넣으면 VM이{" "}
+                    <code className="bg-gray-100 px-1 rounded">01.webp</code> ~
+                    <code className="bg-gray-100 px-1 rounded">NN.webp</code> 를 받아 글에
+                    첨부합니다.
+                    {config?.defaultImageCdn ? (
+                      <>
+                        {" "}
+                        사이트 기본:{" "}
+                        <button
+                          type="button"
+                          className="text-sky-600 hover:underline"
+                          onClick={() =>
+                            setForm((f) => ({
+                              ...f,
+                              imageCdn: config.defaultImageCdn,
+                            }))
+                          }
+                        >
+                          {config.defaultImageCdn}
+                        </button>
+                      </>
+                    ) : null}
+                  </p>
+                </div>
+                <div>
+                  <label className={labelClass}>이미지 개수</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={500}
+                    className={inputClass}
+                    value={form.imageCount}
+                    onChange={(e) =>
+                      setForm((f) => ({
+                        ...f,
+                        imageCount: Number(e.target.value) || 1,
+                      }))
+                    }
+                  />
+                </div>
               </div>
 
               <div>

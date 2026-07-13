@@ -261,6 +261,10 @@ export interface BlogWritingSiteRecord {
   windowStartHour: number;
   /** 발행 가능 종료 시 (0~23, KST) 예: 5 → 05시. start>end면 자정 넘김 */
   windowEndHour: number;
+  /** 블로그 첨부용 이미지 CDN 폴더 (예: https://image.cattery.co.kr/pomsky/) */
+  imageCdn: string;
+  /** CDN 내 이미지 개수 (01.webp ~ NN.webp) */
+  imageCount: number;
   enabled: boolean;
   /** 아직 발행하지 않은 키워드 큐 (앞에서부터 소진) */
   keywordQueue: string[];
@@ -285,6 +289,8 @@ export interface BlogWritingJob {
   publishMode: "random" | "continuous";
   windowStartHour?: number;
   windowEndHour?: number;
+  imageCdn?: string;
+  imageCount?: number;
   /** continuous면 순서, random이면 권장 시각(ISO) */
   scheduledAt: string | null;
   status: BlogJobStatus;
