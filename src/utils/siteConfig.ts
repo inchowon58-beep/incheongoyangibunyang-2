@@ -49,7 +49,7 @@ function mergeTenantIntoConfig(
     content.description?.trim() ||
     content.aboutText?.trim() ||
     content.body?.trim().slice(0, 160) ||
-    `${brandName} 강아지·고양이 파양·무료분양 전문 센터`;
+    `${brandName} 꼬똥드툴레아 프리미엄 분양`;
 
   return {
     ...legacy,

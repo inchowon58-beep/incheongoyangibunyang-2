@@ -83,7 +83,7 @@ export default function TenantSitesClient() {
   const [markingNaverId, setMarkingNaverId] = useState<string | null>(null);
 
   const [showAdopt, setShowAdopt] = useState(false);
-  const [adoptName, setAdoptName] = useState("양준모공인중개사 태솔");
+  const [adoptName, setAdoptName] = useState("메종드꼬똥");
   const [adoptHost, setAdoptHost] = useState("");
   const [adoptSlack, setAdoptSlack] = useState("");
   const [adoptNaverId, setAdoptNaverId] = useState("");
@@ -281,8 +281,9 @@ export default function TenantSitesClient() {
               </button>
               <h2 className="text-xl font-bold text-dark mb-1">기존 Vercel 사이트 편입</h2>
               <p className="text-sm text-gray-500 mb-5">
-                이미 배포된 사이트를 등록 목록에만 추가합니다. E 디자인·홈 화면은 그대로 두고,
-                네이버 계정을 연결합니다. 슬랙은 선택 사항입니다. (Vercel 재배포·도메인 재등록 없음)
+                이미 배포된 <strong>메종드꼬똥</strong> 사이트를 등록 목록에만 추가합니다. M
+                디자인·홈 화면은 그대로 두고, 네이버 계정을 연결합니다. 슬랙은 선택 사항입니다.
+                (Vercel 재배포·도메인 재등록 없음)
               </p>
               <form onSubmit={handleAdopt} className="space-y-4">
                 <div>
@@ -301,7 +302,7 @@ export default function TenantSitesClient() {
                   <input
                     value={adoptHost}
                     onChange={(e) => setAdoptHost(e.target.value)}
-                    placeholder="예: jejuzone.yourdogzone.co.kr"
+                    placeholder="예: ansangoyangibunyang.vercel.app"
                     className="w-full px-4 py-2.5 border border-gray-200 rounded-xl outline-none focus:border-orange bg-white text-gray-900 font-mono text-sm"
                     required
                   />
