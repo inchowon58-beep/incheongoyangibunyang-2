@@ -116,5 +116,27 @@ POST /api/blog-worker/jobs
 ## 4. 하루 발행 · 대량 키워드
 
 - 키워드를 100개 넣어도 **하루 발행 개수**만큼만 당일 job이 됩니다.
-- 소진된 키워드는 큐에서 제거되고, 남은 키워드는 **다음날** 한도만큼 이어서 배정됩니다.
+- 키워드는 **발행 완료(completed)** 시에만 큐에서 제거됩니다. (배정만으로 삭제하지 않음 → job 유실 시 재생성 가능)
+- 오늘 배정 수는 실제 job 기준으로 재계산합니다.
 - `publishedToday`는 KST 날짜 기준으로 자정에 리셋됩니다.
+
+---
+
+## 5. job이 0건일 때
+
+크론은 없습니다. **설정 저장 시** 또는 **VM이 GET 폴링할 때** `ensureTodayBlogJobs`가 job을 만듭니다.
+
+```
+GET /api/blog-worker/jobs?naverId=xxx&debug=1
+```
+
+`diagnostics.hint`에 원인 안내가 포함됩니다.
+
+자주 있는 원인:
+1. `inchon.cattery.co.kr/admin/blog-writing`이 아닌 **다른 도메인**에 저장함
+2. 발행 사용 OFF
+3. 네이버 아이디 불일치
+4. 키워드 없음
+5. 오늘 하루 발행 한도 소진
+
+`scheduledAt`이 미래여도 job은 **바로 목록에 포함**됩니다. VM이 `scheduledAt`까지 기다리면 됩니다.

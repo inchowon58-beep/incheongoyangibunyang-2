@@ -125,7 +125,12 @@ export default function BlogWritingClient() {
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        setMessage(data.message || "저장되었습니다.");
+        setMessage(
+          data.message ||
+            (typeof data.jobsCreated === "number"
+              ? `저장 완료 · job ${data.jobsCreated}건 생성`
+              : "저장되었습니다.")
+        );
         if (data.config) {
           const c = data.config as BlogConfig;
           setConfig(c);

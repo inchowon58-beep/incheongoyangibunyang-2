@@ -76,14 +76,29 @@ export async function PUT(req: NextRequest) {
     });
 
     if (config.enabled) {
-      await ensureTodayBlogJobs(config.siteKey);
+      const created = await ensureTodayBlogJobs(config.siteKey);
+      const refreshed = await getPublicBlogWritingConfig();
+      return NextResponse.json({
+        ok: true,
+        config: refreshed,
+        jobsCreated: created,
+        message:
+          created > 0
+            ? `블로그 작성 설정을 저장했고, 오늘 발행 job ${created}건을 만들었습니다.`
+            : refreshed.keywordQueueCount === 0
+              ? "설정은 저장됐지만 키워드가 없어 job을 만들지 못했습니다."
+              : refreshed.dailyRemaining <= 0
+                ? "설정은 저장됐습니다. 오늘 하루 발행 한도를 이미 모두 사용 중입니다."
+                : "설정은 저장됐습니다. (이번 저장에서 새 job은 없음 — 이미 대기 job이 있거나 조건 미충족)",
+      });
     }
 
     const refreshed = await getPublicBlogWritingConfig();
     return NextResponse.json({
       ok: true,
       config: refreshed,
-      message: "블로그 작성 설정을 저장했습니다.",
+      jobsCreated: 0,
+      message: "블로그 작성 설정을 저장했습니다. (발행 사용 OFF — job 미생성)",
     });
   } catch (error) {
     if (error instanceof DataStorageError) {

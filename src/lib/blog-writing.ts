@@ -296,7 +296,15 @@ export async function getPublicBlogWritingConfig(): Promise<BlogWritingPublicCon
     brandName: ctx.brandName,
     phone: ctx.phone,
   });
-  return toPublic(site, ctx.linkedNaverId, defaults);
+  const today = todayKst();
+  const assigned = existing
+    ? countTodayAssignedJobs(store.jobs, site.siteKey, today)
+    : 0;
+  return toPublic(
+    { ...site, publishedToday: assigned, publishedDate: today },
+    ctx.linkedNaverId,
+    defaults
+  );
 }
 
 export interface SaveBlogWritingInput {
@@ -416,28 +424,176 @@ export async function saveBlogWritingConfig(
   return toPublic(next, ctx.linkedNaverId, defaults);
 }
 
+function jobCreatedDateKst(iso: string): string {
+  try {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Seoul",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date(iso));
+  } catch {
+    return "";
+  }
+}
+
+/** 오늘(KST) 이미 배정·진행·완료된 job 수 (실패 제외 → 재시도 가능) */
+function countTodayAssignedJobs(
+  jobs: BlogWritingJob[],
+  siteKey: string,
+  today: string
+): number {
+  return jobs.filter((j) => {
+    if (j.siteKey !== siteKey) return false;
+    if (j.status === "failed") return false;
+    return jobCreatedDateKst(j.createdAt) === today;
+  }).length;
+}
+
+function keywordsAlreadyAssignedToday(
+  jobs: BlogWritingJob[],
+  siteKey: string,
+  today: string
+): Set<string> {
+  const set = new Set<string>();
+  for (const j of jobs) {
+    if (j.siteKey !== siteKey) continue;
+    if (j.status === "failed") continue;
+    if (jobCreatedDateKst(j.createdAt) !== today) continue;
+    set.add(j.keyword.trim().toLowerCase());
+  }
+  return set;
+}
+
+export interface BlogWorkerDiagnostics {
+  naverId: string;
+  matchingSites: number;
+  enabledSites: number;
+  sites: {
+    siteKey: string;
+    siteUrl: string;
+    enabled: boolean;
+    naverId: string;
+    dailyCount: number;
+    publishedToday: number;
+    keywordQueueCount: number;
+    pendingJobs: number;
+    claimedJobs: number;
+    completedToday: number;
+  }[];
+  pendingOrClaimedJobs: number;
+  hint: string;
+}
+
+export async function getBlogWorkerDiagnostics(
+  naverId: string
+): Promise<BlogWorkerDiagnostics> {
+  const id = naverId.trim().toLowerCase();
+  const store = await getBlogWritingStore();
+  const today = todayKst();
+  const sites = store.sites
+    .filter((s) => (s.naverId || "").trim().toLowerCase() === id)
+    .map((s) => {
+      const rolled = rolloverDailyCounts(s);
+      const assigned = countTodayAssignedJobs(store.jobs, rolled.siteKey, today);
+      return {
+        siteKey: rolled.siteKey,
+        siteUrl: rolled.siteUrl,
+        enabled: rolled.enabled,
+        naverId: rolled.naverId,
+        dailyCount: rolled.dailyCount,
+        publishedToday: assigned,
+        keywordQueueCount: rolled.keywordQueue.length,
+        pendingJobs: store.jobs.filter(
+          (j) => j.siteKey === rolled.siteKey && j.status === "pending"
+        ).length,
+        claimedJobs: store.jobs.filter(
+          (j) => j.siteKey === rolled.siteKey && j.status === "claimed"
+        ).length,
+        completedToday: store.jobs.filter(
+          (j) =>
+            j.siteKey === rolled.siteKey &&
+            j.status === "completed" &&
+            jobCreatedDateKst(j.createdAt) === today
+        ).length,
+      };
+    });
+
+  const pendingOrClaimedJobs = store.jobs.filter(
+    (j) =>
+      j.naverId.toLowerCase() === id &&
+      (j.status === "pending" || j.status === "claimed")
+  ).length;
+
+  let hint = "정상적으로 job을 만들 수 있는 상태입니다. 다시 폴링해 보세요.";
+  if (sites.length === 0) {
+    hint =
+      "이 naverId로 저장된 블로그작성 설정이 없습니다. inchon.cattery.co.kr/admin/blog-writing 에서 네이버 아이디를 맞추고 설정 저장하세요. (다른 도메인에 저장했을 수 있음)";
+  } else if (!sites.some((s) => s.enabled)) {
+    hint = "설정은 있으나 '발행 사용'이 OFF 입니다. ON 후 저장하세요.";
+  } else if (!sites.some((s) => s.keywordQueueCount > 0)) {
+    hint = "키워드 큐가 비어 있습니다. 작성 키워드를 넣고 저장하세요.";
+  } else if (!sites.some((s) => s.publishedToday < s.dailyCount)) {
+    hint =
+      "오늘 하루 발행 개수 한도를 모두 사용했습니다. 내일 다시 생성되거나, 하루 발행 개수를 늘린 뒤 저장하세요.";
+  } else if (pendingOrClaimedJobs === 0) {
+    hint =
+      "한도·키워드는 남아 있는데 pending job이 없습니다. 설정 저장을 한 번 더 누르거나 API를 다시 호출하면 ensure가 job을 만듭니다.";
+  }
+
+  return {
+    naverId: id,
+    matchingSites: sites.length,
+    enabledSites: sites.filter((s) => s.enabled).length,
+    sites,
+    pendingOrClaimedJobs,
+    hint,
+  };
+}
+
 /** 오늘 남은 한도만큼 키워드를 job으로 발행(배정) */
 export async function ensureTodayBlogJobs(siteKey?: string): Promise<number> {
   const store = await getBlogWritingStore();
   const today = todayKst();
   let created = 0;
+  let touched = false;
   const sites = store.sites.map((raw) => rolloverDailyCounts(raw));
   const jobs = [...store.jobs];
 
   for (let i = 0; i < sites.length; i++) {
-    const site = sites[i];
+    let site = sites[i];
     if (siteKey && site.siteKey !== siteKey) continue;
+
+    // 실제 job 기준으로 오늘 배정 수 재동기화 (카운터 불일치 복구)
+    const assigned = countTodayAssignedJobs(jobs, site.siteKey, today);
+    if (
+      site.publishedToday !== assigned ||
+      site.publishedDate !== today
+    ) {
+      site = {
+        ...site,
+        publishedToday: assigned,
+        publishedDate: today,
+      };
+      sites[i] = site;
+      touched = true;
+    }
+
     if (!site.enabled || !site.naverId) continue;
 
-    const remaining = Math.max(0, site.dailyCount - site.publishedToday);
+    const remaining = Math.max(0, site.dailyCount - assigned);
     if (remaining <= 0 || site.keywordQueue.length === 0) {
-      sites[i] = site;
       continue;
     }
 
-    const take = Math.min(remaining, site.keywordQueue.length);
-    const selected = site.keywordQueue.slice(0, take);
-    const rest = site.keywordQueue.slice(take);
+    const already = keywordsAlreadyAssignedToday(jobs, site.siteKey, today);
+    const candidates = site.keywordQueue.filter(
+      (k) => !already.has(k.trim().toLowerCase())
+    );
+    if (candidates.length === 0) continue;
+
+    const take = Math.min(remaining, candidates.length);
+    const selected = candidates.slice(0, take);
     const now = new Date().toISOString();
     const { start, end } = resolveWindowHours(site);
     const images = resolveImageSettings(site, {
@@ -451,7 +607,7 @@ export async function ensureTodayBlogJobs(siteKey?: string): Promise<number> {
         id: `blog-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         siteKey: site.siteKey,
         siteUrl: site.siteUrl,
-        naverId: site.naverId,
+        naverId: site.naverId.trim().toLowerCase(),
         keyword,
         writingStyle: site.writingStyle,
         basePrompt: site.basePrompt,
@@ -469,16 +625,17 @@ export async function ensureTodayBlogJobs(siteKey?: string): Promise<number> {
       created++;
     }
 
+    // 키워드는 완료 시 큐에서 제거. 배정만으로는 유지 → job 유실 시 재생성 가능
     sites[i] = {
       ...site,
-      keywordQueue: rest,
-      publishedToday: site.publishedToday + take,
+      publishedToday: assigned + take,
       publishedDate: today,
       updatedAt: now,
     };
+    touched = true;
   }
 
-  if (created > 0) {
+  if (created > 0 || touched) {
     await saveBlogWritingStore({
       updatedAt: new Date().toISOString(),
       sites,
@@ -522,7 +679,19 @@ export async function getPendingBlogJobsForNaverId(
   const id = naverId.trim().toLowerCase();
   if (!id) return [];
 
-  await ensureTodayBlogJobs();
+  // 해당 naverId 사이트만 우선 배정 시도
+  const storeBefore = await getBlogWritingStore();
+  const matchingKeys = storeBefore.sites
+    .filter((s) => (s.naverId || "").trim().toLowerCase() === id && s.enabled)
+    .map((s) => s.siteKey);
+
+  if (matchingKeys.length === 0) {
+    await ensureTodayBlogJobs();
+  } else {
+    for (const key of matchingKeys) {
+      await ensureTodayBlogJobs(key);
+    }
+  }
 
   const store = await getBlogWritingStore();
   const siteByKey = new Map(store.sites.map((s) => [s.siteKey, s] as const));
@@ -530,7 +699,7 @@ export async function getPendingBlogJobsForNaverId(
   return store.jobs
     .filter(
       (j) =>
-        j.naverId.toLowerCase() === id &&
+        j.naverId.trim().toLowerCase() === id &&
         (j.status === "pending" || j.status === "claimed")
     )
     .sort((a, b) => {
@@ -552,7 +721,8 @@ export async function getPendingBlogJobsForNaverId(
         },
         { imageCdn: site?.imageCdn || "", imageCount: site?.imageCount || 50 }
       );
-      const sampleIndex = (Math.abs(hashKeyword(j.keyword)) % images.imageCount) + 1;
+      const sampleIndex =
+        (Math.abs(hashKeyword(j.keyword)) % Math.max(1, images.imageCount)) + 1;
       return {
         id: j.id,
         siteUrl: j.siteUrl,
@@ -569,7 +739,9 @@ export async function getPendingBlogJobsForNaverId(
         windowEndHour: window.end,
         imageCdn: images.imageCdn,
         imageCount: images.imageCount,
-        sampleImageUrl: buildBlogImageUrl(images.imageCdn, sampleIndex),
+        sampleImageUrl: images.imageCdn
+          ? buildBlogImageUrl(images.imageCdn, sampleIndex)
+          : "",
         scheduledAt: j.scheduledAt,
         siteLink: j.siteUrl,
       };
@@ -593,11 +765,17 @@ export async function reportBlogJobResults(
   const map = new Map(results.map((r) => [r.id, r]));
   let updated = 0;
   const now = new Date().toISOString();
+  const completedKeywordsBySite = new Map<string, Set<string>>();
 
   const jobs = store.jobs.map((j) => {
     const r = map.get(j.id);
     if (!r) return j;
     updated++;
+    if (r.status === "completed") {
+      const set = completedKeywordsBySite.get(j.siteKey) || new Set<string>();
+      set.add(j.keyword.trim().toLowerCase());
+      completedKeywordsBySite.set(j.siteKey, set);
+    }
     return {
       ...j,
       status: r.status,
@@ -607,9 +785,22 @@ export async function reportBlogJobResults(
     } satisfies BlogWritingJob;
   });
 
+  const sites = store.sites.map((site) => {
+    const done = completedKeywordsBySite.get(site.siteKey);
+    if (!done || done.size === 0) return site;
+    return {
+      ...site,
+      keywordQueue: site.keywordQueue.filter(
+        (k) => !done.has(k.trim().toLowerCase())
+      ),
+      updatedAt: now,
+    };
+  });
+
   await saveBlogWritingStore({
     ...store,
     updatedAt: now,
+    sites,
     jobs,
   });
   return updated;

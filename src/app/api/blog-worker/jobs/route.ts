@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyWorkerRequest } from "@/lib/collection-queue";
 import {
   claimBlogJobs,
+  getBlogWorkerDiagnostics,
   getPendingBlogJobsForNaverId,
   reportBlogJobResults,
 } from "@/lib/blog-writing";
@@ -11,9 +12,10 @@ export const dynamic = "force-dynamic";
 /**
  * VM 블로그 자동작성 — 대기 작업 조회
  * GET /api/blog-worker/jobs?naverId={사이트등록시_네이버아이디}
+ * GET /api/blog-worker/jobs?naverId=...&debug=1  → 0건일 때 원인 진단
  * Authorization: Bearer {COLLECTION_WORKER_SECRET}
  *
- * 해당 네이버 아이디가 연결된 사이트의 오늘 발행분(하루개수)만 반환합니다.
+ * pending/claimed 전체를 반환합니다 (scheduledAt이 미래여도 포함 — VM이 시각 보고 대기).
  */
 export async function GET(request: NextRequest) {
   if (!(await verifyWorkerRequest(request))) {
@@ -25,13 +27,19 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "naverId 쿼리 필요" }, { status: 400 });
   }
 
+  const debug = request.nextUrl.searchParams.get("debug") === "1";
   const jobs = await getPendingBlogJobsForNaverId(naverId);
-
-  return NextResponse.json({
-    naverId,
+  const payload: Record<string, unknown> = {
+    naverId: naverId.trim().toLowerCase(),
     count: jobs.length,
     jobs,
-  });
+  };
+
+  if (debug || jobs.length === 0) {
+    payload.diagnostics = await getBlogWorkerDiagnostics(naverId);
+  }
+
+  return NextResponse.json(payload);
 }
 
 /**
