@@ -584,6 +584,78 @@ export async function getBlogWorkerDiagnostics(
   };
 }
 
+/**
+ * 현재 사이트의 발행 job·오늘 한도를 모두 지웁니다.
+ * (설정·키워드·비밀번호는 유지)
+ */
+export async function resetBlogWritingJobs(): Promise<{
+  removedJobs: number;
+  config: BlogWritingPublicConfig;
+  jobsCreated: number;
+}> {
+  const ctx = await getBlogWritingContext();
+  const store = await getBlogWritingStore();
+  const found = findSiteRecord(store.sites, ctx.siteKey, ctx.siteUrl);
+  const defaults = {
+    imageCdn: ctx.defaultImageCdn,
+    imageCount: ctx.defaultImageCount,
+  };
+
+  if (!found.site) {
+    return {
+      removedJobs: 0,
+      config: await getPublicBlogWritingConfig(),
+      jobsCreated: 0,
+    };
+  }
+
+  const normalizedUrl = (ctx.siteUrl || found.site.siteUrl || "")
+    .replace(/\/$/, "")
+    .toLowerCase();
+  const keysToClear = new Set<string>([ctx.siteKey, found.site.siteKey]);
+
+  const before = store.jobs.length;
+  const jobs = store.jobs.filter((j) => {
+    if (keysToClear.has(j.siteKey)) return false;
+    if (
+      normalizedUrl &&
+      (j.siteUrl || "").replace(/\/$/, "").toLowerCase() === normalizedUrl
+    ) {
+      return false;
+    }
+    return true;
+  });
+  const removedJobs = before - jobs.length;
+
+  const nextSite: BlogWritingSiteRecord = {
+    ...found.site,
+    siteKey: ctx.siteKey,
+    siteUrl: ctx.siteUrl,
+    brandName: ctx.brandName,
+    phone: ctx.phone,
+    publishedToday: 0,
+    publishedDate: todayKst(),
+    updatedAt: new Date().toISOString(),
+  };
+
+  const sites = [...store.sites];
+  sites[found.index] = nextSite;
+
+  await saveBlogWritingStore({
+    updatedAt: new Date().toISOString(),
+    sites,
+    jobs,
+  });
+
+  let jobsCreated = 0;
+  if (nextSite.enabled && nextSite.naverId) {
+    jobsCreated = await ensureTodayBlogJobs(ctx.siteKey);
+  }
+
+  const config = await getPublicBlogWritingConfig();
+  return { removedJobs, config, jobsCreated };
+}
+
 /** 오늘 남은 한도만큼 키워드를 job으로 발행(배정) */
 export async function ensureTodayBlogJobs(siteKey?: string): Promise<number> {
   const store = await getBlogWritingStore();

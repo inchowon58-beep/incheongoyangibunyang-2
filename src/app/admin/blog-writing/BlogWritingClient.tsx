@@ -63,6 +63,7 @@ const emptyForm: {
 export default function BlogWritingClient() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [message, setMessage] = useState("");
   const [config, setConfig] = useState<BlogConfig | null>(null);
   const [form, setForm] = useState(emptyForm);
@@ -109,6 +110,26 @@ export default function BlogWritingClient() {
     void load();
   }, []);
 
+  function applyConfigToForm(c: BlogConfig) {
+    setConfig(c);
+    setForm((f) => ({
+      ...f,
+      naverId: c.naverId || "",
+      naverPassword: "",
+      basePrompt: c.basePrompt,
+      writingStyle: c.writingStyle,
+      dailyCount: c.dailyCount,
+      publishMode: c.publishMode,
+      windowStartHour: c.windowStartHour ?? 9,
+      windowEndHour: c.windowEndHour ?? 21,
+      imageCdn: c.imageCdn || "",
+      imageCount: c.imageCount || 50,
+      enabled: c.enabled,
+      keywordsText: c.keywordsText,
+    }));
+    setClearPassword(false);
+  }
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -133,26 +154,7 @@ export default function BlogWritingClient() {
               ? `저장 완료 · job ${data.jobsCreated}건 생성`
               : "저장되었습니다.")
         );
-        if (data.config) {
-          const c = data.config as BlogConfig;
-          setConfig(c);
-          setForm((f) => ({
-            ...f,
-            naverId: c.naverId,
-            naverPassword: "",
-            basePrompt: c.basePrompt,
-            writingStyle: c.writingStyle,
-            dailyCount: c.dailyCount,
-            publishMode: c.publishMode,
-            windowStartHour: c.windowStartHour ?? 9,
-            windowEndHour: c.windowEndHour ?? 21,
-            imageCdn: c.imageCdn || "",
-            imageCount: c.imageCount || 50,
-            enabled: c.enabled,
-            keywordsText: c.keywordsText,
-          }));
-          setClearPassword(false);
-        }
+        if (data.config) applyConfigToForm(data.config as BlogConfig);
       } else {
         setMessage(data.error || "저장 실패");
       }
@@ -160,6 +162,30 @@ export default function BlogWritingClient() {
       setMessage("저장 중 오류");
     }
     setSaving(false);
+  }
+
+  async function handleResetJobs() {
+    const ok = window.confirm(
+      "이 사이트의 발행 job·오늘 한도를 모두 지울까요?\n(설정·키워드는 유지됩니다. 발행 사용 ON이면 오늘 job을 다시 만듭니다.)"
+    );
+    if (!ok) return;
+    setResetting(true);
+    setMessage("초기화 중...");
+    try {
+      const res = await fetch("/api/admin/blog-writing/reset", {
+        method: "POST",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setMessage(data.message || "초기화 완료");
+        if (data.config) applyConfigToForm(data.config as BlogConfig);
+      } else {
+        setMessage(data.error || "초기화 실패");
+      }
+    } catch {
+      setMessage("초기화 중 오류");
+    }
+    setResetting(false);
   }
 
   const inputClass =
@@ -479,15 +505,33 @@ export default function BlogWritingClient() {
             <div className="flex flex-wrap items-center gap-3">
               <button
                 type="submit"
-                disabled={saving}
+                disabled={saving || resetting}
                 className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-sky-600 hover:bg-sky-700 disabled:opacity-60"
               >
                 {saving ? "저장 중..." : "설정 저장"}
               </button>
-              <p className="text-[11px] text-gray-400">
-                VM: <code className="bg-gray-100 px-1 rounded">/api/blog-worker/jobs?naverId=...</code>
+              <button
+                type="button"
+                disabled={saving || resetting}
+                onClick={() => void handleResetJobs()}
+                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-red-700 bg-red-50 border border-red-200 hover:bg-red-100 disabled:opacity-60"
+              >
+                {resetting ? "초기화 중..." : "발행 데이터 초기화"}
+              </button>
+              <p className="text-[11px] text-gray-400 w-full sm:w-auto">
+                초기화: 대기·완료 job 삭제 + 오늘 한도 리셋. 설정·키워드는 유지.
               </p>
             </div>
+
+            {(config?.publishedToday ?? 0) > 0 && (
+              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
+                오늘 배정/발행: {config?.publishedToday}건 · 남은 한도:{" "}
+                {config?.dailyRemaining}건
+                {config && config.dailyRemaining <= 0
+                  ? " — 한도가 가득 찼다면 「발행 데이터 초기화」 후 다시 저장하세요."
+                  : null}
+              </p>
+            )}
           </form>
         )}
       </div>
