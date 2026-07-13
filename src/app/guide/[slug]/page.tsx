@@ -69,8 +69,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     )
   );
   const geo = resolveSeoGeoFromKeyword(exactKeyword);
-  const seed = page.slug || exactKeyword;
-  const contentImages = getSeoContentImageUrls(seed, config);
   const heroImage = getPageImageUrl(page, config);
 
   return {
