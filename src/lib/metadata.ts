@@ -102,11 +102,12 @@ export function buildPageMetadata(
       card: "summary_large_image",
       title,
       description,
-      images: images.map((img) => img.url),
+      images: images.map((img) => ("url" in img ? img.url : img)),
     },
     other: {
       "og:image:width": String(OG_IMAGE_WIDTH),
       "og:image:height": String(OG_IMAGE_HEIGHT),
+      "og:image:type": "image/png",
       ...(geo?.region ? { "geo.region": geo.region } : {}),
       ...(geo?.placename ? { "geo.placename": geo.placename } : {}),
       ...(geo?.position ? { "geo.position": geo.position, ICBM: geo.position } : {}),

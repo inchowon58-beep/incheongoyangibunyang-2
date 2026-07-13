@@ -83,7 +83,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ogPath: `/guide/${page.slug}/opengraph-image`,
       type: "article",
       keywords: buildGuideSeoKeywords(exactKeyword, config.brandName),
-      extraOgImages: [heroImage, ...contentImages],
+      extraOgImages: [heroImage],
       geo: {
         region: geo.region,
         placename: geo.placename,
