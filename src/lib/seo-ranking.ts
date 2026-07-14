@@ -1,7 +1,6 @@
-import { getRankings, saveRankings, type PageRankingRecord, type RankingsData } from "./data";
+import { getPages, getRankings, saveRankings, type PageRankingRecord, type RankingsData } from "./data";
 import { findNaverWebRank } from "./naver-web-search";
 import { getSiteConfig } from "./site-config";
-import { resolvePagesContext } from "./pages-resolver";
 
 const HISTORY_DAYS = 7;
 const RETAIN_DAYS = 14;
@@ -97,8 +96,8 @@ export async function getAllRankingSummaries(): Promise<{
   lastUpdated: string | null;
   hasNaverApi: boolean;
 }> {
-  const [{ pages }, rankings, config] = await Promise.all([
-    resolvePagesContext(),
+  const [pages, rankings, config] = await Promise.all([
+    getPages(),
     getRankings(),
     getSiteConfig(),
   ]);
@@ -134,7 +133,7 @@ export async function getPageRankingDetail(pageId: string): Promise<{
   summary: RankingSummary | null;
   history: RankingHistoryPoint[];
 } | null> {
-  const [{ pages }, rankings] = await Promise.all([resolvePagesContext(), getRankings()]);
+  const [pages, rankings] = await Promise.all([getPages(), getRankings()]);
   const page = pages.find((p) => p.id === pageId);
   if (!page) return null;
 
@@ -153,8 +152,8 @@ export async function runAllRankingChecks(): Promise<{
   skipped: number;
   errors: string[];
 }> {
-  const [{ pages }, config, rankings] = await Promise.all([
-    resolvePagesContext(),
+  const [pages, config, rankings] = await Promise.all([
+    getPages(),
     getSiteConfig(),
     getRankings(),
   ]);

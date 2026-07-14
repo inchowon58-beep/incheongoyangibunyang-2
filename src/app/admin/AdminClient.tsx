@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { guidePageUrl } from "@/lib/constants";
 import { MAX_BULK_KEYWORDS } from "@/lib/parse-keywords";
-import KeywordHealthPanel from "@/components/admin/KeywordHealthPanel";
 
 interface SeoPage {
   id: string;
@@ -485,9 +484,6 @@ export default function AdminClient() {
             <p className="text-sm text-gray-500">{brandName || "SEO 페이지 관리"}</p>
           </div>
           <div className="flex gap-3 text-sm">
-            <Link href="/admin/blog-writing" className="text-orange font-medium hover:underline">
-              블로그작성
-            </Link>
             <Link href="/admin/inquiries" className="text-orange font-medium hover:underline">
               견적 문의 DB
             </Link>
@@ -863,14 +859,6 @@ export default function AdminClient() {
               </div>
             </div>
           )}
-        </div>
-
-        <div className="mb-6">
-          <KeywordHealthPanel
-            disabled={loading || generating || bulkEnqueueing}
-            onMessage={setMessage}
-            onRepostDone={() => void loadData()}
-          />
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm p-6">
