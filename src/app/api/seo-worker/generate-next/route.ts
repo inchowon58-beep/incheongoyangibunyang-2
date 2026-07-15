@@ -6,6 +6,8 @@ import {
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+// Vercel Pro 함수 상한(최대 300초). 서버 여유는 300초지만, VM read timeout(180초)
+// 안에 응답해야 하므로 실제 생성 시간은 gemini.ts의 LLM 예산으로 제한한다.
 export const maxDuration = 300;
 
 /**

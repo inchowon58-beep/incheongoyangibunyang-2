@@ -7,7 +7,8 @@ import { resolvePagesContext } from "@/lib/pages-resolver";
 import { deleteTenantPage } from "@/lib/supabase/tenant-pages";
 import { getResolvedSiteConfig } from "@/utils/siteConfig";
 
-export const maxDuration = 120;
+// Vercel Pro 함수 상한(최대 300초).
+export const maxDuration = 300;
 
 export async function GET() {
   if (!(await isAuthenticated())) {

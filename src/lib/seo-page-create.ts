@@ -150,18 +150,30 @@ export async function createSeoPageFromKeyword(
     );
   }
 
-  try {
-    const { revalidatePath, revalidateTag } = await import("next/cache");
-    revalidatePath(guidePageUrl(slug));
-    revalidatePath("/sitemap.xml");
-    revalidatePath("/");
-    revalidateTag("guide-pages", "max");
-    revalidateTag(`guide:${slug}`, "max");
-    if (isTenant && tenant) {
-      revalidateTag(`guide:${tenant.id}:${slug}`, "max");
+  // 재검증(ISR)은 응답 임계 경로에서 제외 — 요청 반환 후 백그라운드로 처리한다.
+  // (함수 상한 안에서 실행되며, 실패해도 다음 요청/방문 시 재검증되므로 응답을 막지 않는다.)
+  const runRevalidation = async () => {
+    try {
+      const { revalidatePath, revalidateTag } = await import("next/cache");
+      revalidatePath(guidePageUrl(slug));
+      revalidatePath("/sitemap.xml");
+      revalidatePath("/");
+      revalidateTag("guide-pages", "max");
+      revalidateTag(`guide:${slug}`, "max");
+      if (isTenant && tenant) {
+        revalidateTag(`guide:${tenant.id}:${slug}`, "max");
+      }
+    } catch (error) {
+      console.error("revalidate after SEO create failed:", error);
     }
-  } catch (error) {
-    console.error("revalidate after SEO create failed:", error);
+  };
+
+  try {
+    const { after } = await import("next/server");
+    after(runRevalidation);
+  } catch {
+    // 요청 컨텍스트가 아니면(스크립트/테스트 등) 즉시 실행으로 폴백
+    await runRevalidation();
   }
 
   const enqueueResult = await enqueueCollectionRequest(pageId, page, site.url);

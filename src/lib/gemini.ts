@@ -36,10 +36,24 @@ export interface GeneratedSeoContent {
 const MIN_BODY_CHARS = 1400;
 const MAX_BODY_CHARS = 1600;
 
-const GEMINI_MODELS = [
-  "gemini-2.5-flash",
-  "gemini-2.5-flash-lite",
+/**
+ * 빠른 모델(lite) 우선 → 실패 시 flash 1회. JSON mime 고정.
+ * 시도 횟수를 최소화해 VM read timeout(180초) 안에 동기 응답을 보장한다.
+ */
+const GEMINI_ATTEMPTS = [
+  { model: "gemini-2.5-flash-lite", useJsonMime: true },
+  { model: "gemini-2.5-flash", useJsonMime: true },
 ] as const;
+
+/**
+ * LLM 전체 시간 예산. Vercel Pro 함수 상한은 300초지만, VM read timeout(180초)
+ * 안에 저장·응답까지 마쳐야 하므로 DB·수집 처리(≈30초 여유)를 남기고 90초로 제한한다.
+ */
+const LLM_TOTAL_BUDGET_MS = 90_000;
+/** 단일 호출 최대 대기 — 초과 시 abort 하고 다음 시도로 넘어간다. */
+const LLM_PER_CALL_MS = 55_000;
+/** 남은 예산이 이보다 적으면 새 호출을 시작하지 않는다. */
+const LLM_MIN_CALL_MS = 10_000;
 
 const CONTENT_RULES = `
 작성 조건:
@@ -174,75 +188,90 @@ JSON만 응답:
   const genAI = new GoogleGenerativeAI(key);
 
   const errors: string[] = [];
+  const deadline = Date.now() + LLM_TOTAL_BUDGET_MS;
 
-  for (const modelName of GEMINI_MODELS) {
-    for (const useJsonMime of [true, false]) {
-      try {
-        const model = genAI.getGenerativeModel({
-          model: modelName,
-          generationConfig: {
-            temperature: 1.05,
-            topP: 0.95,
-            maxOutputTokens: 8192,
-            ...(useJsonMime ? { responseMimeType: "application/json" as const } : {}),
-          },
-        });
+  for (const { model: modelName, useJsonMime } of GEMINI_ATTEMPTS) {
+    const remaining = deadline - Date.now();
+    if (remaining < LLM_MIN_CALL_MS) {
+      errors.push(`${modelName}: 시간 예산 소진(${remaining}ms) — 시도 건너뜀`);
+      break;
+    }
+    const perCallMs = Math.min(LLM_PER_CALL_MS, remaining);
 
-        const result = await model.generateContent(prompt);
-        const text = result.response.text();
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) {
-          errors.push(`${modelName}: JSON 파싱 실패`);
-          continue;
-        }
+    // 함수 상한(60초)에 걸려 연결이 끊기기 전에 스스로 호출을 취소한다.
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), perCallMs);
+    try {
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        generationConfig: {
+          temperature: 1.05,
+          topP: 0.95,
+          maxOutputTokens: 6144,
+          ...(useJsonMime ? { responseMimeType: "application/json" as const } : {}),
+        },
+      });
 
-        const parsed = JSON.parse(jsonMatch[0]) as {
-          title: string;
-          description: string;
-          content: string;
-          slug?: string;
-          faqs?: SeoFaq[];
-        };
-
-        if (!parsed.content?.trim()) {
-          errors.push(`${modelName}: content 비어 있음`);
-          continue;
-        }
-
-        const plainLen = bodyPlainLength(parsed.content);
-        if (plainLen < MIN_BODY_CHARS) {
-          errors.push(`${modelName}: 본문 ${plainLen}자 (최소 ${MIN_BODY_CHARS}자)`);
-          continue;
-        }
-
-        if (plainLen > MAX_BODY_CHARS + 400) {
-          console.warn(`[seo] 본문 ${plainLen}자 — 목표 상한 초과, 저장은 진행`);
-        }
-
-        console.info(`[seo] Gemini OK model=${modelName} bodyChars=${plainLen}`);
-
-        return {
-          title: generateVariedSeoTitle(keyword, region, parsed.title),
-          description: polishSeoText(parsed.description, region, keyword),
-          content: polishSeoHtmlContent(parsed.content, keyword),
-          slug: parsed.slug,
-          faqs: normalizeFaqs(parsed.faqs, keyword, site).map((f) => ({
-            question: enforceExactKeyword(f.question, keyword),
-            answer: enforceExactKeyword(f.answer, keyword),
-          })),
-        };
-      } catch (error) {
-        const msg = error instanceof Error ? error.message : String(error);
-        errors.push(`${modelName}${useJsonMime ? "+json" : ""}: ${msg}`);
-        console.error(`[seo] Gemini fail ${modelName}:`, msg);
+      const result = await model.generateContent(prompt, {
+        signal: controller.signal,
+        timeout: perCallMs,
+      });
+      const text = result.response.text();
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) {
+        errors.push(`${modelName}: JSON 파싱 실패`);
+        continue;
       }
+
+      const parsed = JSON.parse(jsonMatch[0]) as {
+        title: string;
+        description: string;
+        content: string;
+        slug?: string;
+        faqs?: SeoFaq[];
+      };
+
+      if (!parsed.content?.trim()) {
+        errors.push(`${modelName}: content 비어 있음`);
+        continue;
+      }
+
+      const plainLen = bodyPlainLength(parsed.content);
+      if (plainLen < MIN_BODY_CHARS) {
+        errors.push(`${modelName}: 본문 ${plainLen}자 (최소 ${MIN_BODY_CHARS}자)`);
+        continue;
+      }
+
+      if (plainLen > MAX_BODY_CHARS + 400) {
+        console.warn(`[seo] 본문 ${plainLen}자 — 목표 상한 초과, 저장은 진행`);
+      }
+
+      console.info(`[seo] Gemini OK model=${modelName} bodyChars=${plainLen}`);
+
+      return {
+        title: generateVariedSeoTitle(keyword, region, parsed.title),
+        description: polishSeoText(parsed.description, region, keyword),
+        content: polishSeoHtmlContent(parsed.content, keyword),
+        slug: parsed.slug,
+        faqs: normalizeFaqs(parsed.faqs, keyword, site).map((f) => ({
+          question: enforceExactKeyword(f.question, keyword),
+          answer: enforceExactKeyword(f.answer, keyword),
+        })),
+      };
+    } catch (error) {
+      const aborted = controller.signal.aborted;
+      const msg = error instanceof Error ? error.message : String(error);
+      errors.push(`${modelName}${aborted ? "(timeout)" : ""}: ${msg}`);
+      console.error(`[seo] Gemini fail ${modelName}${aborted ? " (timeout)" : ""}:`, msg);
+    } finally {
+      clearTimeout(timer);
     }
   }
 
   // API 키가 있는데도 실패하면 짧은 폴백으로 숨기지 않고 에러
   const detail = errors.slice(0, 3).join(" | ");
   throw new Error(
-    `Gemini SEO 생성 실패(본문 ${MIN_BODY_CHARS}자 미달 또는 API 오류). ${detail}`
+    `Gemini SEO 생성 실패(본문 ${MIN_BODY_CHARS}자 미달 또는 API 오류/시간초과). ${detail}`
   );
 }
 
